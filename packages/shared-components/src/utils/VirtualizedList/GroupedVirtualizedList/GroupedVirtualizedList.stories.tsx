@@ -17,7 +17,7 @@ const meta = {
     component: GroupedVirtualizedList<SimpleGroupHeader, SimpleItemComponent, undefined>,
     args: {
         groups,
-        getItemComponent: (
+        "getItemComponent": (
             index: number,
             context: VirtualizedListContext<undefined>,
             onFocus: (item: SimpleItemComponent, e: React.FocusEvent) => void,
@@ -25,16 +25,18 @@ const meta = {
             const item = items[index];
             return <SimpleItemComponent key={item.id} item={item} context={context} onFocus={onFocus} />;
         },
-        getGroupHeaderComponent: (
+        "getGroupHeaderComponent": (
             _groupIndex: number,
             header: SimpleGroupHeader,
             context: VirtualizedListContext<undefined>,
             onFocus: (header: SimpleGroupHeader, e: React.FocusEvent) => void,
         ) => <GroupHeaderComponent key={header.id} header={header} context={context} onFocus={onFocus} />,
-        isItemFocusable: () => true,
-        getItemKey: (item) => item.id,
-        getHeaderKey: (header) => header.id,
-        style: { height: "400px" },
+        "isItemFocusable": () => true,
+        "getItemKey": (item) => item.id,
+        "getHeaderKey": (header) => header.id,
+        "style": { height: "400px" },
+        "role": "listbox",
+        "aria-label": "Grouped virtualized list",
     },
 } satisfies Meta<GroupedVirtualizedListProps<SimpleGroupHeader, SimpleItemComponent, undefined>>;
 

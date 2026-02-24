@@ -50,7 +50,10 @@ export const SimpleItemComponent = memo(function SimpleItemComponent({
     return (
         <button
             type="button"
+            role="option"
+            id={item.id}
             key={item.id}
+            aria-selected={selected}
             className={classNames(styles.item, { [styles.itemSelected]: selected })}
             tabIndex={selected ? 0 : -1}
             onFocus={(e) => onFocus(item, e)}
@@ -76,8 +79,10 @@ export const GroupHeaderComponent = memo(function GroupHeaderComponent({
     return (
         <button
             type="button"
+            role="option"
             id={header.id}
             key={header.id}
+            aria-selected={selected}
             className={classNames(styles.group, { [styles.groupSelected]: selected })}
             tabIndex={selected ? 0 : -1}
             onFocus={(e) => onFocus(header, e)}
