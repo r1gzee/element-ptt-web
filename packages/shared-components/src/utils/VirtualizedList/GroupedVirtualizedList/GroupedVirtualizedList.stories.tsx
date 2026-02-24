@@ -10,11 +10,11 @@ import React from "react";
 
 import { GroupedVirtualizedList, type GroupedVirtualizedListProps } from "./GroupedVirtualizedList";
 import { type VirtualizedListContext } from "../virtualized-list";
-import { GroupHeaderComponent, groups, items, SimpleItemComponent } from "../story-mock";
+import { GroupHeaderComponent, groups, items, SimpleItemComponent, type SimpleGroupHeader } from "../story-mock";
 
 const meta = {
     title: "Utils/VirtualizedList/GroupedVirtualizedList",
-    component: GroupedVirtualizedList<SimpleItemComponent, undefined>,
+    component: GroupedVirtualizedList<SimpleGroupHeader, SimpleItemComponent, undefined>,
     args: {
         groups,
         getItemComponent: (
@@ -25,14 +25,18 @@ const meta = {
             const item = items[index];
             return <SimpleItemComponent key={item.id} item={item} context={context} onFocus={onFocus} />;
         },
-        getGroupHeaderComponent: (groupIndex: number) => (
-            <GroupHeaderComponent key={`group-${groupIndex}`} groupIndex={groupIndex} />
-        ),
+        getGroupHeaderComponent: (
+            _groupIndex: number,
+            header: SimpleGroupHeader,
+            context: VirtualizedListContext<undefined>,
+            onFocus: (header: SimpleGroupHeader, e: React.FocusEvent) => void,
+        ) => <GroupHeaderComponent key={header.id} header={header} context={context} onFocus={onFocus} />,
         isItemFocusable: () => true,
         getItemKey: (item) => item.id,
+        getHeaderKey: (header) => header.id,
         style: { height: "400px" },
     },
-} satisfies Meta<GroupedVirtualizedListProps<SimpleItemComponent, undefined>>;
+} satisfies Meta<GroupedVirtualizedListProps<SimpleGroupHeader, SimpleItemComponent, undefined>>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
