@@ -7,11 +7,11 @@ SPDX-License-Identifier: AGPL-3.0-only OR GPL-3.0-only OR LicenseRef-Element-Com
 Please see LICENSE files in the repository root for full details.
 */
 
-import React, { type ChangeEventHandler, type JSX, type ReactNode } from "react";
+import React, { type ChangeEventHandler, type JSX, type ReactNode, useCallback, useRef } from "react";
 import { logger } from "matrix-js-sdk/src/logger";
 import { FALLBACK_ICE_SERVER } from "matrix-js-sdk/src/webrtc/call";
 import { type EmptyObject } from "matrix-js-sdk/src/matrix";
-import { Form, SettingsToggleInput } from "@vector-im/compound-web";
+import { Form, SettingsToggleInput, Button, Text } from "@vector-im/compound-web";
 
 import { _t } from "../../../../../languageHandler";
 import MediaDeviceHandler, { type IMediaDevices, MediaDeviceKindEnum } from "../../../../../MediaDeviceHandler";
@@ -24,6 +24,55 @@ import SettingsTab from "../SettingsTab";
 import { SettingsSection } from "../../shared/SettingsSection";
 import { SettingsSubsection } from "../../shared/SettingsSubsection";
 import MatrixClientContext from "../../../../../contexts/MatrixClientContext";
+import { usePTTKeybind } from "../../../../../hooks/usePTTKeybind";
+import { useVoiceChannelMode } from "../../../../../hooks/useVoiceChannelMode";
+import { VoiceAudioModeToggle } from "../../../rooms/VoiceAudioModeToggle";
+
+/**
+ * PTT keybind capture widget + default voice mode selector.
+ * Rendered as a sub-section inside VoiceUserSettingsTab.
+ */
+function PTTSettings(): JSX.Element {
+    const { keybind, isCapturing, startCapture, cancelCapture } = usePTTKeybind();
+    const [voiceMode, setVoiceMode] = useVoiceChannelMode();
+    const captureRef = useRef<HTMLButtonElement | null>(null);
+
+    const handleCaptureClick = useCallback(() => {
+        if (isCapturing) {
+            cancelCapture();
+        } else {
+            startCapture();
+            captureRef.current?.focus();
+        }
+    }, [isCapturing, startCapture, cancelCapture]);
+
+    return (
+        <SettingsSubsection heading={_t("settings|voip|ptt_section")} stretchContent>
+            <div className="mx_PTTSettings">
+                <Text as="p" size="sm">
+                    {_t("settings|voip|ptt_keybind_label")}
+                </Text>
+                <div className="mx_PTTSettings_keybind">
+                    <span className="mx_PTTSettings_keybindKey">
+                        {isCapturing ? _t("settings|voip|ptt_press_any_key") : keybind}
+                    </span>
+                    <Button
+                        ref={captureRef}
+                        size="sm"
+                        kind={isCapturing ? "destructive" : "secondary"}
+                        onClick={handleCaptureClick}
+                    >
+                        {isCapturing ? _t("action|cancel") : _t("settings|voip|ptt_change_keybind")}
+                    </Button>
+                </div>
+                <Text as="p" size="sm">
+                    {_t("settings|voip|ptt_default_mode_label")}
+                </Text>
+                <VoiceAudioModeToggle mode={voiceMode} onChange={setVoiceMode} />
+            </div>
+        </SettingsSubsection>
+    );
+}
 
 interface IState {
     mediaDevices: IMediaDevices | null;
@@ -209,6 +258,10 @@ export default class VoiceUserSettingsTab extends React.Component<EmptyObject, I
                             {webcamDropdown}
                             <SettingsFlag name="VideoView.flipVideoHorizontally" level={SettingLevel.ACCOUNT} />
                         </SettingsSubsection>
+                    </SettingsSection>
+
+                    <SettingsSection heading={_t("settings|voip|ptt_section")}>
+                        <PTTSettings />
                     </SettingsSection>
 
                     <SettingsSection heading={_t("common|advanced")}>

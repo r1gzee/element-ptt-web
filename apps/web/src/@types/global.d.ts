@@ -69,7 +69,11 @@ type ElectronChannel =
     | "userAccessToken"
     | "homeserverUrl"
     | "serverSupportedVersions"
-    | "showToast";
+    | "showToast"
+    | "ptt-register"
+    | "ptt-unregister"
+    | "ptt-keydown"
+    | "ptt-keyup";
 
 declare global {
     // use `number` as the return type in all cases for globalThis.set{Interval,Timeout},

@@ -1018,6 +1018,17 @@ export class ElementCall extends Call {
         this.participants = participants;
     }
 
+    /**
+     * Mute or unmute the local audio track via the Element Call widget's DeviceMute action.
+     * Used by the PTT system to control the microphone without rejoining the call.
+     */
+    public async setAudioEnabled(enabled: boolean): Promise<void> {
+        if (!this.widgetApi) {
+            throw new Error("Cannot setAudioEnabled: not connected to call widget");
+        }
+        await this.widgetApi.transport.send(ElementWidgetActions.DeviceMute, { audio_enabled: enabled });
+    }
+
     private readonly onDeviceMute = (ev: CustomEvent<IWidgetApiRequest>): void => {
         ev.preventDefault();
         this.widgetApi!.transport.reply(ev.detail, {}); // ack

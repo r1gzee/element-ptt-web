@@ -113,3 +113,48 @@ Please see LICENSE files in the repository root for full details.
 .mx_RoomHeader .mx_RoomHeader_toggled {
     fill: var(--cpd-color-icon-accent-primary);
 }
+
+/* ── Voice channel status indicator ─────────────────────────────── */
+
+.mx_RoomHeader_voiceIndicator {
+    /* unset button defaults */
+    border: none;
+    background: none;
+    padding: 0;
+    cursor: pointer;
+
+    display: flex;
+    align-items: center;
+    gap: var(--cpd-space-1x);
+    border-radius: 9999px;
+    padding: var(--cpd-space-1x) var(--cpd-space-2x);
+    color: $secondary-content;
+    font: var(--cpd-font-body-sm-medium);
+    transition: background-color 0.15s ease, color 0.15s ease;
+
+    svg {
+        width: 16px;
+        height: 16px;
+        flex-shrink: 0;
+    }
+
+    &:hover {
+        background-color: var(--cpd-color-bg-subtle-primary);
+        color: $primary-content;
+    }
+
+    /* Connected state: user is in this voice channel */
+    &.mx_RoomHeader_voiceIndicator_connected {
+        background-color: var(--cpd-color-bg-success-subtle);
+        color: var(--cpd-color-text-success-primary);
+
+        &:hover {
+            background-color: var(--cpd-color-bg-critical-subtle);
+            color: var(--cpd-color-text-critical-primary);
+        }
+    }
+}
+
+.mx_RoomHeader_voiceIndicator_count {
+    font: var(--cpd-font-body-xs-semibold);
+}

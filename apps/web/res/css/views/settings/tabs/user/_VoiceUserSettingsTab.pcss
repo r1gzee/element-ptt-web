@@ -1,0 +1,39 @@
+/*
+Copyright 2024 New Vector Ltd.
+
+SPDX-License-Identifier: AGPL-3.0-only OR GPL-3.0-only OR LicenseRef-Element-Commercial
+Please see LICENSE files in the repository root for full details.
+*/
+
+/* ── PTT settings sub-section ──────────────────────────────────── */
+
+.mx_PTTSettings {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cpd-space-4x);
+}
+
+.mx_PTTSettings_keybind {
+    display: flex;
+    align-items: center;
+    gap: var(--cpd-space-3x);
+}
+
+/* The currently bound key, styled like a keyboard key */
+.mx_PTTSettings_keybindKey {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    padding: var(--cpd-space-1x) var(--cpd-space-2x);
+    border-radius: 4px;
+    border: 1px solid $kbd-border-color;
+    box-shadow: 0 2px $kbd-border-color;
+    background-color: $background;
+    font: var(--cpd-font-body-sm-semibold);
+    font-family: monospace;
+    color: $primary-content;
+    text-transform: capitalize;
+    white-space: nowrap;
+    user-select: none;
+}

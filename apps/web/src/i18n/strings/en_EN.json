@@ -3049,7 +3049,12 @@
             "video_section": "Video settings",
             "voice_agc": "Automatically adjust the microphone volume",
             "voice_processing": "Voice processing",
-            "voice_section": "Voice settings"
+            "voice_section": "Voice settings",
+            "ptt_section": "Push to Talk",
+            "ptt_keybind_label": "PTT key binding",
+            "ptt_change_keybind": "Change",
+            "ptt_press_any_key": "Press any key…",
+            "ptt_default_mode_label": "Default voice mode"
         },
         "warn_quit": "Warn before quitting",
         "warning": "<w>WARNING:</w> <description/>"
@@ -3982,7 +3987,28 @@
         "voice_call": "Voice call",
         "voice_call_incoming": "Incoming voice call",
         "voice_call_using": "Voice call using:",
-        "you_are_presenting": "You are presenting"
+        "you_are_presenting": "You are presenting",
+        "voice_channel": "Voice channel",
+        "voice_channel_active": {
+            "one": "%(count)s in voice",
+            "other": "%(count)s in voice"
+        },
+        "voice_channel_connected": {
+            "one": "Connected · %(count)s",
+            "other": "Connected · %(count)s"
+        },
+        "ptt": {
+            "push_to_talk": "Push to Talk",
+            "hold_to_speak": "Hold %(key)s to speak",
+            "speaking": "Speaking…",
+            "release_to_stop": "Release to stop",
+            "floor_occupied": "Someone else is speaking"
+        },
+        "mode": {
+            "push_to_talk": "Push to Talk",
+            "live_audio": "Live Audio",
+            "toggle_label": "Switch between Push to Talk and Live Audio mode"
+        }
     },
     "web_default_device_name": "%(appName)s: %(browserName)s on %(osName)s",
     "welcome_to_element": "Welcome to Element",

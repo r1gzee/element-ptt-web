@@ -28,6 +28,8 @@ import { useRoomName } from "../../../../hooks/useRoomName.ts";
 import { RightPanelPhases } from "../../../../stores/right-panel/RightPanelStorePhases.ts";
 import { useMatrixClientContext } from "../../../../contexts/MatrixClientContext.tsx";
 import { useRoomMemberCount, useRoomMembers } from "../../../../hooks/useRoomMembers.ts";
+import { useCall, useConnectionState, useParticipantCount } from "../../../../hooks/useCall.ts";
+import { ConnectionState, ElementCall } from "../../../../models/Call.ts";
 import { _t } from "../../../../languageHandler.tsx";
 import { getPlatformCallTypeProps, useRoomCall } from "../../../../hooks/room/useRoomCall.tsx";
 import { useRoomThreadNotifications } from "../../../../hooks/room/useRoomThreadNotifications.ts";
@@ -88,6 +90,12 @@ function RoomHeaderButtons({
     const isDirectMessage = !!dmMember;
 
     const notificationsEnabled = useFeatureEnabled("feature_notifications");
+
+    // Voice channel status
+    const voiceCall = useCall(room.roomId);
+    const voiceConnectionState = useConnectionState(voiceCall);
+    const isInVoiceChannel = voiceConnectionState === ConnectionState.Connected;
+    const voiceParticipantCount = useParticipantCount(voiceCall);
 
     const videoClick = useCallback(
         (ev: React.MouseEvent) => videoCallClick(ev, callOptions[0]),
@@ -297,6 +305,38 @@ function RoomHeaderButtons({
         roomContext.mainSplitContentType === MainSplitContentType.Call;
     return (
         <>
+            {/* Voice channel status indicator — shows participant count when a voice channel is active */}
+            {voiceParticipantCount > 0 && (
+                <Tooltip
+                    label={
+                        isInVoiceChannel
+                            ? _t("voip|voice_channel_connected", { count: voiceParticipantCount })
+                            : _t("voip|voice_channel_active", { count: voiceParticipantCount })
+                    }
+                >
+                    <button
+                        className={`mx_RoomHeader_voiceIndicator ${isInVoiceChannel ? "mx_RoomHeader_voiceIndicator_connected" : ""}`}
+                        onClick={async () => {
+                            if (voiceCall instanceof ElementCall) {
+                                if (isInVoiceChannel) {
+                                    await voiceCall.disconnect();
+                                } else {
+                                    await voiceCall.start();
+                                }
+                            }
+                        }}
+                        aria-label={
+                            isInVoiceChannel
+                                ? _t("voip|voice_channel_connected", { count: voiceParticipantCount })
+                                : _t("voip|voice_channel_active", { count: voiceParticipantCount })
+                        }
+                    >
+                        <VoiceCallIcon width="16px" height="16px" />
+                        <span className="mx_RoomHeader_voiceIndicator_count">{voiceParticipantCount}</span>
+                    </button>
+                </Tooltip>
+            )}
+
             {additionalButtons?.map((props) => {
                 const label = props.label();
 
