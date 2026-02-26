@@ -165,14 +165,25 @@ export function usePTT(call: ElementCall | null): UsePTTResult {
     // ---------------------------------------------------------------------------
 
     useEffect(() => {
-        if (!isConnected || voiceMode !== "ptt") return;
+        if (!isConnected) return;
         if (!window.electron) return;
 
-        const onPTTDown = (): void => startSpeaking();
-        const onPTTUp = (): void => stopSpeaking();
+        // Handle both PTT (hold) and live (toggle) modes.
+        // voiceModeRef.current is read at event time to avoid stale closures.
+        const onPTTDown = (): void => {
+            if (voiceModeRef.current === "ptt") {
+                startSpeaking();
+            } else {
+                toggleMute();
+            }
+        };
+        const onPTTUp = (): void => {
+            if (voiceModeRef.current === "ptt") stopSpeaking();
+        };
 
         window.electron.on("ptt-keydown", onPTTDown);
         window.electron.on("ptt-keyup", onPTTUp);
+        // Also register with evdev/uiohook/globalShortcut backends.
         window.electron.send("ptt-register", keybind);
 
         return () => {
@@ -180,7 +191,7 @@ export function usePTT(call: ElementCall | null): UsePTTResult {
             window.electron!.off("ptt-keyup", onPTTUp);
             window.electron!.send("ptt-unregister", keybind);
         };
-    }, [isConnected, voiceMode, keybind, startSpeaking, stopSpeaking]);
+    }, [isConnected, keybind, startSpeaking, stopSpeaking, toggleMute]);
 
     // Clean up global shortcut when call disconnects
     useEffect(() => {

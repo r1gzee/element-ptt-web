@@ -29,6 +29,67 @@ import { usePTTKeybind } from "../../../../../hooks/usePTTKeybind";
 import { useVoiceChannelMode } from "../../../../../hooks/useVoiceChannelMode";
 import { VoiceAudioModeToggle } from "../../../rooms/VoiceAudioModeToggle";
 
+const PTT_HTTP_PORT = 7700;
+
+/**
+ * HTTP PTT server instructions shown only inside the Electron app.
+ * Users bind a key in their window manager (Sway, Hyprland, KDE, etc.)
+ * or system (macOS, Windows) to POST to these endpoints globally.
+ */
+function PTTHttpServerInfo(): JSX.Element | null {
+    if (!window.electron) return null;
+    return (
+        <SettingsSubsection heading="Global PTT — Window Manager / System" stretchContent>
+            <Text as="p" size="sm">
+                Nexus listens for PTT on a local HTTP server at port {PTT_HTTP_PORT}. Bind your PTT key
+                in your window manager or system to call these endpoints — this works globally on Wayland,
+                X11, macOS and Windows regardless of which window is focused.
+            </Text>
+            <div className="mx_PTTHttpServer">
+                <Text as="p" size="sm">
+                    <strong>Key pressed:</strong>{" "}
+                    <code>curl -sf -X POST http://127.0.0.1:{PTT_HTTP_PORT}/ptt/down</code>
+                </Text>
+                <Text as="p" size="sm">
+                    <strong>Key released:</strong>{" "}
+                    <code>curl -sf -X POST http://127.0.0.1:{PTT_HTTP_PORT}/ptt/up</code>
+                </Text>
+            </div>
+            <details>
+                <summary>
+                    <Text as="span" size="sm">
+                        Example configurations
+                    </Text>
+                </summary>
+                <Text as="p" size="sm">
+                    <strong>Sway / i3</strong> (backtick key):
+                </Text>
+                <pre className="mx_PTTHttpServer_code">
+                    {`bindsym --no-repeat grave exec curl -sf -X POST http://127.0.0.1:${PTT_HTTP_PORT}/ptt/down\nbindsym --release    grave exec curl -sf -X POST http://127.0.0.1:${PTT_HTTP_PORT}/ptt/up`}
+                </pre>
+                <Text as="p" size="sm">
+                    <strong>Hyprland</strong>:
+                </Text>
+                <pre className="mx_PTTHttpServer_code">
+                    {`bind  = , grave, exec, curl -sf -X POST http://127.0.0.1:${PTT_HTTP_PORT}/ptt/down\nbindr = , grave, exec, curl -sf -X POST http://127.0.0.1:${PTT_HTTP_PORT}/ptt/up`}
+                </pre>
+                <Text as="p" size="sm">
+                    <strong>Windows — AutoHotkey v2</strong>:
+                </Text>
+                <pre className="mx_PTTHttpServer_code">
+                    {`\`\`:: {\n  Loop {\n    if !GetKeyState("\`\`", "P") {\n      Run "curl -sf -X POST http://127.0.0.1:${PTT_HTTP_PORT}/ptt/up",,"Hide"\n      break\n    }\n    if A_Index = 1\n      Run "curl -sf -X POST http://127.0.0.1:${PTT_HTTP_PORT}/ptt/down",,"Hide"\n    Sleep 50\n  }\n}`}
+                </pre>
+                <Text as="p" size="sm">
+                    <strong>macOS — shell script</strong> (bind in System Settings → Keyboard Shortcuts):
+                </Text>
+                <pre className="mx_PTTHttpServer_code">
+                    {`# on key down:\ncurl -sf -X POST http://127.0.0.1:${PTT_HTTP_PORT}/ptt/down\n# on key up:\ncurl -sf -X POST http://127.0.0.1:${PTT_HTTP_PORT}/ptt/up`}
+                </pre>
+            </details>
+        </SettingsSubsection>
+    );
+}
+
 /**
  * PTT keybind capture widget + default voice mode selector.
  * Rendered as a sub-section inside VoiceUserSettingsTab.
@@ -263,6 +324,7 @@ export default class VoiceUserSettingsTab extends React.Component<EmptyObject, I
 
                     <SettingsSection heading={_t("settings|voip|ptt_section")}>
                         <PTTSettings />
+                        <PTTHttpServerInfo />
                     </SettingsSection>
 
                     <SettingsSection heading={_t("common|advanced")}>
