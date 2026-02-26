@@ -176,6 +176,8 @@ export function usePTT(call: ElementCall | null): UsePTTResult {
         window.electron.send("ptt-register", keybind);
 
         return () => {
+            window.electron!.off("ptt-keydown", onPTTDown);
+            window.electron!.off("ptt-keyup", onPTTUp);
             window.electron!.send("ptt-unregister", keybind);
         };
     }, [isConnected, voiceMode, keybind, startSpeaking, stopSpeaking]);

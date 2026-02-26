@@ -142,6 +142,7 @@ declare global {
     interface Electron {
         // Legacy
         on(channel: ElectronChannel, listener: (event: Event, ...args: any[]) => void): void;
+        off(channel: ElectronChannel, listener: (event: Event, ...args: any[]) => void): void;
         send(channel: ElectronChannel, ...args: any[]): void;
         // Initialisation
         initialise(): Promise<{
