@@ -7,14 +7,13 @@ SPDX-License-Identifier: AGPL-3.0-only OR GPL-3.0-only OR LicenseRef-Element-Com
 Please see LICENSE files in the repository root for full details.
 */
 
-import "@fontsource/inter/400.css";
-import "@fontsource/inter/400-italic.css";
-import "@fontsource/inter/500.css";
-import "@fontsource/inter/500-italic.css";
-import "@fontsource/inter/600.css";
-import "@fontsource/inter/600-italic.css";
-import "@fontsource/inter/700.css";
-import "@fontsource/inter/700-italic.css";
+import "@fontsource/lato/300.css";
+import "@fontsource/lato/300-italic.css";
+import "@fontsource/lato/400.css";
+import "@fontsource/lato/400-italic.css";
+import "@fontsource/lato/700.css";
+import "@fontsource/lato/700-italic.css";
+import "@fontsource/lato/900.css";
 
 import "@fontsource/fira-code/latin-ext-400.css";
 import "@fontsource/fira-code/latin-400.css";

@@ -58,6 +58,7 @@
             "core-js",
             "cpu-features",
             "esbuild",
+            "matrix-js-sdk",
             "protobufjs",
             "ssh2",
             "unrs-resolver"
