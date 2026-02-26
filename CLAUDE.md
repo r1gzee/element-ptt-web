@@ -79,6 +79,15 @@ VoiceChannelPanel (UI)
 - `apps/web/res/themes/dark/css/_nexus.pcss` — remaps every Compound `--cpd-color-green-*` token to orange; imported last so it wins via cascade
 - Font: `@fontsource/lato` imported in the theme entry point
 
+## Code style
+
+- **Single-purpose functions**: each function does one thing. Split before it grows.
+- **No deep nesting**: flatten with early returns and extracted helpers instead of nested `if`/callbacks.
+- **Explicit over clever**: choose the readable solution, not the concise one.
+- **Name for intent**: `isFloorOccupied`, `startSpeaking` — not `flag`, `fn`, `data`.
+- **Flag functions over ~20 lines**: call it out before writing more; break it up first.
+- **No workaround stacking**: when something doesn't work, break the problem down and fix the root cause. Don't patch over errors with try/catch or conditionals that hide the real issue.
+
 ## CSS conventions
 
 Styles live in `apps/web/res/css/`. Component styles use the `_ComponentName.pcss` naming convention. The Nexus color overrides must stay in `_nexus.pcss` and be imported **after** the Compound token definitions.
