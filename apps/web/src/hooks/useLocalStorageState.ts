@@ -17,6 +17,9 @@ const getValue = <T>(key: string, initialValue: T): T => {
     }
 };
 
+/** Custom event name used to synchronise useLocalStorageState instances within the same page. */
+const MX_STORAGE_EVENT = "mx_local_storage_changed";
+
 // Hook behaving like useState but persisting the value to localStorage. Returns same as useState
 export const useLocalStorageState = <T>(key: string, initialValue: T): [T, Dispatch<T>] => {
     const lsKey = "mx_" + key;
@@ -27,10 +30,22 @@ export const useLocalStorageState = <T>(key: string, initialValue: T): [T, Dispa
         setValue(getValue(lsKey, initialValue));
     }, [lsKey, initialValue]);
 
+    // Keep all instances on the same page in sync when any instance writes.
+    useEffect(() => {
+        const handler = (e: Event): void => {
+            const ce = e as CustomEvent<{ key: string; value: unknown }>;
+            if (ce.detail.key === lsKey) setValue(ce.detail.value as T);
+        };
+        window.addEventListener(MX_STORAGE_EVENT, handler);
+        return () => window.removeEventListener(MX_STORAGE_EVENT, handler);
+    }, [lsKey]);
+
     const _setValue: Dispatch<T> = useCallback(
         (v: T) => {
             window.localStorage.setItem(lsKey, JSON.stringify(v));
             setValue(v);
+            // Notify sibling hook instances on the same page.
+            window.dispatchEvent(new CustomEvent(MX_STORAGE_EVENT, { detail: { key: lsKey, value: v } }));
         },
         [lsKey],
     );

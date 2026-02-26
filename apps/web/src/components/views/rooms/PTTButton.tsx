@@ -87,6 +87,7 @@ export function PTTButton({ state, keybindLabel, onPTTStart, onPTTEnd }: PTTButt
         <Tooltip label={tooltip}>
             <AccessibleButton
                 className={className}
+                onClick={null}
                 onMouseDown={handleMouseDown}
                 onMouseUp={handleMouseUp}
                 onMouseLeave={handleMouseUp}

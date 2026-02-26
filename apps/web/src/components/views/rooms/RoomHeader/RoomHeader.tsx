@@ -321,7 +321,7 @@ function RoomHeaderButtons({
                                 if (isInVoiceChannel) {
                                     await voiceCall.disconnect();
                                 } else {
-                                    await voiceCall.start();
+                                    await voiceCall.start({ voiceOnly: true });
                                 }
                             }
                         }}

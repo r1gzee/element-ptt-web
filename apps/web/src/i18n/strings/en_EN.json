@@ -3051,9 +3051,11 @@
             "voice_processing": "Voice processing",
             "voice_section": "Voice settings",
             "ptt_section": "Push to Talk",
-            "ptt_keybind_label": "PTT key binding",
+            "ptt_keybind_label": "PTT key binding (hold to speak)",
+            "ptt_mute_toggle_keybind_label": "Mute toggle key binding (press to mute/unmute)",
+            "ptt_mute_toggle_none": "None",
             "ptt_change_keybind": "Change",
-            "ptt_press_any_key": "Press any key…",
+            "ptt_press_any_key": "Press any key… (Escape to clear)",
             "ptt_default_mode_label": "Default voice mode"
         },
         "warn_quit": "Warn before quitting",

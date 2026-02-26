@@ -8,18 +8,20 @@ Please see LICENSE files in the repository root for full details.
 import { useState, useEffect, useCallback, useRef } from "react";
 import { logger } from "matrix-js-sdk/src/logger";
 
-import { ElementCall, ConnectionState } from "../models/Call";
+import { ElementCall, ConnectionState, CallEvent } from "../models/Call";
 import { useConnectionState } from "./useCall";
 import { usePTTKeybind } from "./usePTTKeybind";
 import { useVoiceChannelMode } from "./useVoiceChannelMode";
 
 interface UsePTTResult {
-    /** Whether the local user is currently speaking (PTT active). */
+    /** Whether the local user's mic is currently open (PTT active or live-audio unmuted). */
     isSpeaking: boolean;
-    /** Unmute the mic / start speaking. No-op if not in PTT mode. */
-    startSpeaking: () => Promise<void>;
-    /** Mute the mic / stop speaking. No-op if not in PTT mode. */
-    stopSpeaking: () => Promise<void>;
+    /** Unmute the mic while held (PTT mode only). No-op in live mode. */
+    startSpeaking: () => void;
+    /** Mute the mic on release (PTT mode only). No-op in live mode. */
+    stopSpeaking: () => void;
+    /** Toggle the mic on/off persistently. Works in both PTT and live modes. */
+    toggleMute: () => void;
     /** True when another participant is speaking (floor occupied) — PTT is blocked. */
     isFloorOccupied: boolean;
     /** Current voice mode ('ptt' | 'live'). */
@@ -32,11 +34,11 @@ interface UsePTTResult {
  * Core hook for Push-to-Talk and Live Audio mode logic.
  *
  * Manages the local user's microphone state in the current room's voice channel:
- * - In PTT mode: mic is muted by default; hold the configured key (or button) to speak.
- * - In Live Audio mode: mic is always unmuted.
+ * - In PTT mode: mic is muted by default; hold the PTT key (or button) to speak.
+ * - In Live Audio mode: mic is always unmuted by default; use toggleMute to mute.
  *
- * Floor control (PTT only): if another participant is already speaking the local PTT
- * button/key is blocked until the floor is released.
+ * A second optional keybind (muteToggleKeybind) persistently toggles the mic
+ * regardless of the current mode — useful as a keyboard mute button.
  *
  * @param call - The ElementCall for the current room, or null if not in a call.
  */
@@ -47,76 +49,89 @@ export function usePTT(call: ElementCall | null): UsePTTResult {
     const [isSpeaking, setIsSpeaking] = useState(false);
     const [isFloorOccupied, setIsFloorOccupied] = useState(false);
     const [voiceMode, setVoiceModeState] = useVoiceChannelMode();
-    const { keybind } = usePTTKeybind();
+    const { keybind, muteToggleKeybind } = usePTTKeybind();
 
-    // Keep a ref to the latest call so keydown/keyup handlers don't become stale.
+    // Keep refs to avoid stale closures in event handlers.
     const callRef = useRef(call);
     callRef.current = call;
     const isSpeakingRef = useRef(isSpeaking);
     isSpeakingRef.current = isSpeaking;
+    const voiceModeRef = useRef(voiceMode);
+    voiceModeRef.current = voiceMode;
+
+    // Serialize widget mute actions to prevent concurrent sends racing each other.
+    const muteQueueRef = useRef<Promise<void>>(Promise.resolve());
 
     // ---------------------------------------------------------------------------
     // Mic control helpers
     // ---------------------------------------------------------------------------
 
-    const startSpeaking = useCallback(async (): Promise<void> => {
+    /** Queue a mute/unmute so widget actions never run concurrently. */
+    const queueSetAudio = useCallback((enabled: boolean): void => {
+        muteQueueRef.current = muteQueueRef.current.then(async () => {
+            const c = callRef.current;
+            if (!c) return;
+            try {
+                await c.setAudioEnabled(enabled);
+            } catch (e) {
+                logger.error(`PTT: failed to ${enabled ? "unmute" : "mute"} microphone`, e);
+                // Revert optimistic UI state on failure.
+                setIsSpeaking(enabled ? false : isSpeakingRef.current);
+            }
+        });
+    }, []);
+
+    /** Unmute mic while held (PTT mode only). */
+    const startSpeaking = useCallback((): void => {
         if (!callRef.current || !isConnected) return;
-        if (voiceMode !== "ptt") return;
-        if (isFloorOccupied) return; // another speaker is active
+        if (voiceModeRef.current !== "ptt") return;
+        if (isFloorOccupied) return;
+        setIsSpeaking(true);
+        queueSetAudio(true);
+    }, [isConnected, isFloorOccupied, queueSetAudio]);
 
-        try {
-            await callRef.current.setAudioEnabled(true);
-            setIsSpeaking(true);
-        } catch (e) {
-            logger.error("PTT: failed to unmute microphone", e);
-        }
-    }, [isConnected, voiceMode, isFloorOccupied]);
-
-    const stopSpeaking = useCallback(async (): Promise<void> => {
+    /** Mute mic on release (PTT mode only). */
+    const stopSpeaking = useCallback((): void => {
         if (!callRef.current || !isConnected) return;
         if (!isSpeakingRef.current) return;
+        setIsSpeaking(false);
+        queueSetAudio(false);
+    }, [isConnected, queueSetAudio]);
 
-        try {
-            await callRef.current.setAudioEnabled(false);
-            setIsSpeaking(false);
-        } catch (e) {
-            logger.error("PTT: failed to mute microphone", e);
-        }
-    }, [isConnected]);
+    /** Toggle mic on/off persistently — works in both PTT and live modes. */
+    const toggleMute = useCallback((): void => {
+        if (!callRef.current || !isConnected) return;
+        const next = !isSpeakingRef.current;
+        setIsSpeaking(next);
+        queueSetAudio(next);
+    }, [isConnected, queueSetAudio]);
 
     // ---------------------------------------------------------------------------
-    // Apply mic state whenever mode changes or connection state changes
+    // Apply mic state whenever mode or connection state changes
     // ---------------------------------------------------------------------------
 
     useEffect(() => {
         if (!call || !isConnected) return;
 
-        const applyMode = async (): Promise<void> => {
-            try {
-                if (voiceMode === "live") {
-                    await call.setAudioEnabled(true);
-                    setIsSpeaking(false);
-                } else {
-                    // PTT mode — always start muted
-                    await call.setAudioEnabled(false);
-                    setIsSpeaking(false);
-                }
-            } catch (e) {
-                logger.error("PTT: failed to apply voice mode", e);
+        if (voiceMode === "live") {
+            // Live mode: start unmuted. Don't force-unmute if already in a toggleMute-muted state —
+            // only apply on initial connection or mode switch (isSpeakingRef tracks current state).
+            setIsSpeaking(true);
+            queueSetAudio(true);
+        } else {
+            // PTT mode: mute on entry, but don't interrupt an active transmission.
+            if (!isSpeakingRef.current) {
+                queueSetAudio(false);
             }
-        };
-
-        applyMode();
-    }, [call, isConnected, voiceMode]);
+        }
+    }, [call, isConnected, voiceMode, queueSetAudio]);
 
     // ---------------------------------------------------------------------------
-    // Keyboard shortcut — web (tab-focused only)
+    // PTT keyboard shortcut — web (tab-focused only)
     // ---------------------------------------------------------------------------
 
     useEffect(() => {
         if (!isConnected || voiceMode !== "ptt") return;
-
-        // Skip DOM key listeners when running in Electron — main process sends IPC events instead.
         if (window.electron) return;
 
         const onKeyDown = (e: KeyboardEvent): void => {
@@ -124,7 +139,6 @@ export function usePTT(call: ElementCall | null): UsePTTResult {
             e.preventDefault();
             startSpeaking();
         };
-
         const onKeyUp = (e: KeyboardEvent): void => {
             if (e.code !== keybind) return;
             stopSpeaking();
@@ -139,6 +153,24 @@ export function usePTT(call: ElementCall | null): UsePTTResult {
     }, [isConnected, voiceMode, keybind, startSpeaking, stopSpeaking]);
 
     // ---------------------------------------------------------------------------
+    // Mute-toggle keyboard shortcut — web (works in both modes)
+    // ---------------------------------------------------------------------------
+
+    useEffect(() => {
+        if (!isConnected || !muteToggleKeybind) return;
+        if (window.electron) return;
+
+        const onKeyDown = (e: KeyboardEvent): void => {
+            if (e.code !== muteToggleKeybind || e.repeat) return;
+            e.preventDefault();
+            toggleMute();
+        };
+
+        window.addEventListener("keydown", onKeyDown);
+        return () => window.removeEventListener("keydown", onKeyDown);
+    }, [isConnected, muteToggleKeybind, toggleMute]);
+
+    // ---------------------------------------------------------------------------
     // Electron IPC — global shortcut events from main process
     // ---------------------------------------------------------------------------
 
@@ -146,18 +178,14 @@ export function usePTT(call: ElementCall | null): UsePTTResult {
         if (!isConnected || voiceMode !== "ptt") return;
         if (!window.electron) return;
 
-        const onPTTDown = (): void => void startSpeaking();
-        const onPTTUp = (): void => void stopSpeaking();
+        const onPTTDown = (): void => startSpeaking();
+        const onPTTUp = (): void => stopSpeaking();
 
         window.electron.on("ptt-keydown", onPTTDown);
         window.electron.on("ptt-keyup", onPTTUp);
-
-        // Register the current keybind with the main process
         window.electron.send("ptt-register", keybind);
 
         return () => {
-            // Electron's IPC API doesn't have a standard removeListener in the
-            // element-web abstraction; unregister the global shortcut instead.
             window.electron!.send("ptt-unregister", keybind);
         };
     }, [isConnected, voiceMode, keybind, startSpeaking, stopSpeaking]);
@@ -169,8 +197,7 @@ export function usePTT(call: ElementCall | null): UsePTTResult {
     }, [isConnected, keybind]);
 
     // ---------------------------------------------------------------------------
-    // Floor control: detect whether another participant is speaking
-    // (basic heuristic — real floor state would come from a MatrixRTC event)
+    // Floor control
     // ---------------------------------------------------------------------------
 
     useEffect(() => {
@@ -179,31 +206,24 @@ export function usePTT(call: ElementCall | null): UsePTTResult {
             return;
         }
 
-        // Listen to participant changes; a full floor-control protocol would use
-        // m.call.member events or a dedicated MatrixRTC extension. For now we only
-        // block the button while the local user is NOT the one holding the floor.
         const onParticipants = (): void => {
-            // Floor is "occupied" if some participant sent a PTT-active signal.
-            // Without a live PTT protocol this defaults to false; real implementation
-            // would parse m.call.member state events.
             setIsFloorOccupied(false);
         };
 
-        call.on("participants", onParticipants);
-        return () => void call.off("participants", onParticipants);
+        call.on(CallEvent.Participants, onParticipants);
+        return () => void call.off(CallEvent.Participants, onParticipants);
     }, [call]);
 
     // ---------------------------------------------------------------------------
-    // setVoiceMode — wraps state setter with immediate mic application
+    // setVoiceMode
     // ---------------------------------------------------------------------------
 
     const setVoiceMode = useCallback(
         (mode: typeof voiceMode) => {
             setVoiceModeState(mode);
-            // The useEffect above will detect the mode change and apply mic state.
         },
         [setVoiceModeState],
     );
 
-    return { isSpeaking, startSpeaking, stopSpeaking, isFloorOccupied, voiceMode, setVoiceMode };
+    return { isSpeaking, startSpeaking, stopSpeaking, toggleMute, isFloorOccupied, voiceMode, setVoiceMode };
 }

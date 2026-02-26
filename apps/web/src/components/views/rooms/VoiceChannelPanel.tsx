@@ -17,6 +17,7 @@ import type { Room } from "matrix-js-sdk/src/matrix";
 
 import { _t } from "../../../languageHandler";
 import { ElementCall, ConnectionState } from "../../../models/Call";
+import { type Call } from "../../../models/Call";
 import { useCall, useConnectionState, useParticipatingMembers } from "../../../hooks/useCall";
 import { usePTT } from "../../../hooks/usePTT";
 import { PTTButton, type PTTButtonState } from "./PTTButton";
@@ -40,10 +41,10 @@ export function VoiceChannelPanel({ room }: VoiceChannelPanelProps): JSX.Element
     const connectionState = useConnectionState(call);
     const isConnected = connectionState === ConnectionState.Connected;
 
-    const { isSpeaking, startSpeaking, stopSpeaking, isFloorOccupied, voiceMode, setVoiceMode } =
+    const { isSpeaking, startSpeaking, stopSpeaking, toggleMute, isFloorOccupied, voiceMode, setVoiceMode } =
         usePTT(elementCall);
 
-    const participants = useParticipatingMembers(call ?? ({ participants: new Map() } as unknown as ElementCall));
+    const participants = useParticipatingMembers(call as Call);
     const { keybind } = usePTTKeybind();
 
     const [collapsed, setCollapsed] = useState(false);
@@ -56,14 +57,9 @@ export function VoiceChannelPanel({ room }: VoiceChannelPanelProps): JSX.Element
         }
     }, [call]);
 
-    const handleMuteToggle = useCallback(async () => {
-        // Live Audio mode: toggle mic on/off
-        if (isSpeaking) {
-            await stopSpeaking();
-        } else {
-            await startSpeaking();
-        }
-    }, [isSpeaking, startSpeaking, stopSpeaking]);
+    const handleMuteToggle = useCallback(() => {
+        toggleMute();
+    }, [toggleMute]);
 
     // Nothing to render when not connected to a call
     if (!isConnected) return null;
@@ -94,7 +90,6 @@ export function VoiceChannelPanel({ room }: VoiceChannelPanelProps): JSX.Element
                     </Text>
                 </div>
                 <div className="mx_VoiceChannelPanel_controls">
-                    <VoiceAudioModeToggle mode={voiceMode} onChange={setVoiceMode} />
                     <Tooltip label={_t("action|leave")}>
                         <IconButton onClick={handleLeave} aria-label={_t("action|leave")} size="sm">
                             <LeaveIcon />
@@ -119,8 +114,8 @@ export function VoiceChannelPanel({ room }: VoiceChannelPanelProps): JSX.Element
                         <PTTButton
                             state={pttState}
                             keybindLabel={keybind}
-                            onPTTStart={() => void startSpeaking()}
-                            onPTTEnd={() => void stopSpeaking()}
+                            onPTTStart={startSpeaking}
+                            onPTTEnd={stopSpeaking}
                         />
                     ) : (
                         /* Live Audio mode: show a regular mute/unmute toggle */
@@ -137,6 +132,7 @@ export function VoiceChannelPanel({ room }: VoiceChannelPanelProps): JSX.Element
                             </IconButton>
                         </Tooltip>
                     )}
+                    <VoiceAudioModeToggle mode={voiceMode} onChange={setVoiceMode} />
                 </div>
             )}
         </div>

@@ -2710,6 +2710,7 @@ export class RoomView extends React.Component<IRoomProps, IRoomState> {
                             role="main"
                             onClose={this.onCallClose}
                         />
+                        {this.state.room && <VoiceChannelPanel room={this.state.room} />}
                         {previewBar}
                     </>
                 );
