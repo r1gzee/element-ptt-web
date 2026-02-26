@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <defs>
+    <radialGradient id="g1" cx="15%" cy="20%" r="55%">
+      <stop offset="0%" stop-color="#3a1800" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#0d0d0d" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="g2" cx="85%" cy="75%" r="50%">
+      <stop offset="0%" stop-color="#2a1000" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#0d0d0d" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="g3" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#1a0a00" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#080808" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="blur1">
+      <feGaussianBlur stdDeviation="60"/>
+    </filter>
+    <filter id="blur2">
+      <feGaussianBlur stdDeviation="40"/>
+    </filter>
+  </defs>
+
+  <!-- Base dark background -->
+  <rect width="1920" height="1080" fill="#0f0f0f"/>
+
+  <!-- Subtle radial glows -->
+  <rect width="1920" height="1080" fill="url(#g1)"/>
+  <rect width="1920" height="1080" fill="url(#g2)"/>
+  <rect width="1920" height="1080" fill="url(#g3)"/>
+
+  <!-- Abstract geometric lines — orange tones, low opacity -->
+  <g opacity="0.08" stroke="#ff7f35" stroke-width="1" fill="none">
+    <line x1="0" y1="200" x2="800" y2="600"/>
+    <line x1="0" y1="400" x2="600" y2="900"/>
+    <line x1="200" y1="0" x2="900" y2="700"/>
+    <line x1="1920" y1="100" x2="1100" y2="800"/>
+    <line x1="1920" y1="400" x2="1200" y2="1080"/>
+    <line x1="1600" y1="0" x2="800" y2="1080"/>
+    <line x1="960" y1="0" x2="960" y2="1080"/>
+    <line x1="0" y1="540" x2="1920" y2="540"/>
+  </g>
+
+  <!-- Large blurred orange orbs -->
+  <g filter="url(#blur1)">
+    <circle cx="280" cy="220" r="260" fill="#ff7f35" opacity="0.07"/>
+    <circle cx="1650" cy="820" r="300" fill="#c43d00" opacity="0.06"/>
+    <circle cx="960" cy="540" r="180" fill="#ff8544" opacity="0.03"/>
+  </g>
+
+  <!-- Medium geometric shapes — dark orange, subtle -->
+  <g filter="url(#blur2)" opacity="0.12">
+    <polygon points="100,80 320,80 420,260 200,340 40,200" fill="#ff7f35"/>
+    <polygon points="1600,740 1820,680 1900,900 1700,980 1520,880" fill="#c43d00"/>
+  </g>
+
+  <!-- Fine grid overlay — very subtle -->
+  <g opacity="0.025" stroke="#ff7f35" stroke-width="0.5" fill="none">
+    <line x1="0" y1="270" x2="1920" y2="270"/>
+    <line x1="0" y1="540" x2="1920" y2="540"/>
+    <line x1="0" y1="810" x2="1920" y2="810"/>
+    <line x1="480" y1="0" x2="480" y2="1080"/>
+    <line x1="960" y1="0" x2="960" y2="1080"/>
+    <line x1="1440" y1="0" x2="1440" y2="1080"/>
+  </g>
+</svg>

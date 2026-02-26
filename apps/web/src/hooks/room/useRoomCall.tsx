@@ -12,10 +12,8 @@ import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react
 import { logger as rootLogger } from "matrix-js-sdk/src/logger";
 
 import type React from "react";
-import { useFeatureEnabled, useSettingValue } from "../useSettings";
-import SdkConfig from "../../SdkConfig";
+import { useSettingValue } from "../useSettings";
 import { useEventEmitter, useEventEmitterState } from "../useEventEmitter";
-import { LegacyCallHandlerEvent } from "../../LegacyCallHandler";
 import { useWidgets } from "../../utils/WidgetUtils";
 import { WidgetType } from "../../widgets/WidgetType";
 import { useCall, useConnectionState, useParticipantCount } from "../useCall";
@@ -38,7 +36,6 @@ import { type InteractionName } from "../../PosthogTrackers";
 import { ElementCallMemberEventType } from "../../call-types";
 import { LocalRoom, LocalRoomState } from "../../models/LocalRoom";
 import { useScopedRoomContext } from "../../contexts/ScopedRoomContext";
-import { SdkContextClass } from "../../contexts/SDKContext";
 
 const logger = rootLogger.getChild("useRoomCall");
 
@@ -61,18 +58,11 @@ export const getPlatformCallTypeProps = (
                 label: _t("voip|element_call"),
                 analyticsName: "WebVoipOptionElementCall",
             };
-        case PlatformCallType.JitsiCall:
-            return {
-                label: _t("voip|jitsi_call"),
-                analyticsName: "WebVoipOptionJitsi",
-            };
-        case PlatformCallType.LegacyCall:
-            return {
-                label: _t("voip|legacy_call"),
-                analyticsName: "WebVoipOptionLegacy",
-            };
         default:
-            throw Error(`Unexpected PlatformCallType ${platformCallType}`);
+            return {
+                label: _t("voip|element_call"),
+                analyticsName: "WebVoipOptionElementCall",
+            };
     }
 };
 
@@ -109,12 +99,8 @@ export const useRoomCall = (
 } => {
     const roomViewStore = useScopedRoomContext("roomViewStore").roomViewStore;
     // settings
-    const groupCallsEnabled = useFeatureEnabled("feature_group_calls");
     const widgetsFeatureEnabled = useSettingValue(UIFeature.Widgets);
     const voipFeatureEnabled = useSettingValue(UIFeature.Voip);
-    const useElementCallExclusively = useMemo(() => {
-        return SdkConfig.get("element_call").use_exclusively;
-    }, []);
 
     const serverIsConfiguredForElementCall = useEventEmitterState(
         CallStore.instance,
@@ -124,22 +110,16 @@ export const useRoomCall = (
     );
 
     useEffect(() => {
-        if (useElementCallExclusively && !serverIsConfiguredForElementCall) {
+        if (!serverIsConfiguredForElementCall) {
             logger.warn(
                 "Element Call is configured to be used exclusively, but the server is not configured with a transport",
             );
         }
-    }, [useElementCallExclusively, serverIsConfiguredForElementCall]);
+    }, [serverIsConfiguredForElementCall]);
 
-    const hasLegacyCall = useEventEmitterState(
-        SdkContextClass.instance.legacyCallHandler,
-        LegacyCallHandlerEvent.CallsChanged,
-        () => SdkContextClass.instance.legacyCallHandler.getCallForRoom(room.roomId) !== null,
-    );
     // settings
     const widgets = useWidgets(room);
     const jitsiWidget = useMemo(() => widgets.find((widget) => WidgetType.JITSI.matches(widget.type)), [widgets]);
-    const hasJitsiWidget = !!jitsiWidget;
     const managedHybridWidget = useMemo(() => widgets.find(isManagedHybridWidget), [widgets]);
     const hasManagedHybridWidget = !!managedHybridWidget;
 
@@ -171,48 +151,13 @@ export const useRoomCall = (
 
     const mayCreateElementCalls = mayCreateElementCallState && serverIsConfiguredForElementCall;
 
-    // The options provided to the RoomHeader.
-    // If there are multiple options, the user will be prompted to choose.
+    // Nexus: always use Element Call exclusively
     const callOptions = useMemo((): PlatformCallType[] => {
-        const options: PlatformCallType[] = [];
-        if (groupCallsEnabled) {
-            if (hasGroupCall || mayCreateElementCalls) {
-                options.push(PlatformCallType.ElementCall);
-            }
-            if (useElementCallExclusively && !hasJitsiWidget) {
-                return [PlatformCallType.ElementCall];
-            }
-        }
-        if (memberCount <= 2) {
-            options.push(PlatformCallType.LegacyCall);
-        } else if (mayEditWidgets || hasJitsiWidget) {
-            options.push(PlatformCallType.JitsiCall);
-        }
-        if (hasGroupCall && WidgetType.CALL.matches(groupCall.widget.type)) {
-            // only allow joining the ongoing Element call if there is one.
-            return [PlatformCallType.ElementCall];
-        }
-        return options;
-    }, [
-        memberCount,
-        mayEditWidgets,
-        hasJitsiWidget,
-        groupCallsEnabled,
-        hasGroupCall,
-        mayCreateElementCalls,
-        useElementCallExclusively,
-        groupCall?.widget.type,
-    ]);
+        return [PlatformCallType.ElementCall];
+    }, []);
 
     let widget: IApp | undefined;
-    if (callOptions.includes(PlatformCallType.JitsiCall) || callOptions.includes(PlatformCallType.LegacyCall)) {
-        widget = jitsiWidget ?? managedHybridWidget;
-    }
-    if (callOptions.includes(PlatformCallType.ElementCall)) {
-        widget = groupCall?.widget;
-    } else {
-        widget = groupCall?.widget ?? jitsiWidget;
-    }
+    widget = groupCall?.widget;
     const updateWidgetState = useCallback((): void => {
         setCanPinWidget(WidgetLayoutStore.instance.canAddToContainer(room, Container.Top));
         setWidgetPinned(!!widget && WidgetLayoutStore.instance.isInContainer(room, widget, Container.Top));
@@ -234,27 +179,17 @@ export const useRoomCall = (
         if (connectedCalls.find((call) => call.roomId != room.roomId)) {
             return State.Ongoing;
         }
-        if (hasGroupCall && (hasJitsiWidget || hasManagedHybridWidget)) {
+        if (hasGroupCall && hasManagedHybridWidget) {
             return promptPinWidget ? State.Unpinned : State.Ongoing;
         }
-        if (hasLegacyCall) {
-            return State.Ongoing;
-        }
 
-        if (!callOptions.includes(PlatformCallType.LegacyCall) && !mayCreateElementCalls && !mayEditWidgets) {
-            return State.NoPermission;
-        }
-        // Catch-all for just not having any call options available.
-        if (!callOptions.length) {
+        if (!mayCreateElementCalls && !mayEditWidgets) {
             return State.NoPermission;
         }
         return State.NoCall;
     }, [
-        callOptions,
         connectedCalls,
         hasGroupCall,
-        hasJitsiWidget,
-        hasLegacyCall,
         hasManagedHybridWidget,
         mayCreateElementCalls,
         mayEditWidgets,
@@ -315,13 +250,8 @@ export const useRoomCall = (
 
     const roomDoesNotExist = room instanceof LocalRoom && room.state !== LocalRoomState.CREATED;
 
-    // We hide the voice call button if it'd have the same effect as the video call button
-    let hideVoiceCallButton =
-        isManagedHybridWidgetEnabled(room) ||
-        // Disable voice calls if Legacy calls are disabled
-        (!callOptions.includes(PlatformCallType.LegacyCall) &&
-            // Disable voice calls in ECall if the room is a group (we only present video calls for groups of users)
-            (!callOptions.includes(PlatformCallType.ElementCall) || memberCount > 2));
+    // We hide the voice call button for groups (Element Call is video-primary for groups)
+    let hideVoiceCallButton = isManagedHybridWidgetEnabled(room) || memberCount > 2;
 
     let hideVideoCallButton = false;
     // We hide both buttons if:

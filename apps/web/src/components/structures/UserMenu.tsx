@@ -6,7 +6,7 @@ SPDX-License-Identifier: AGPL-3.0-only OR GPL-3.0-only OR LicenseRef-Element-Com
 Please see LICENSE files in the repository root for full details.
 */
 
-import React, { type JSX, createRef, type ReactNode, useMemo } from "react";
+import React, { createRef, type JSX, type ReactNode } from "react";
 import { type Room } from "matrix-js-sdk/src/matrix";
 import {
     ChatSolidIcon,
@@ -16,9 +16,7 @@ import {
     SettingsSolidIcon,
     LeaveIcon,
     NotificationsSolidIcon,
-    ThemeIcon,
 } from "@vector-im/compound-design-tokens/assets/web/icons";
-import { IconButton } from "@vector-im/compound-web";
 
 import { MatrixClientPeg } from "../../MatrixClientPeg";
 import defaultDispatcher from "../../dispatcher/dispatcher";
@@ -32,15 +30,12 @@ import FeedbackDialog from "../views/dialogs/FeedbackDialog";
 import Modal from "../../Modal";
 import LogoutDialog, { shouldShowLogoutDialog } from "../views/dialogs/LogoutDialog";
 import SettingsStore from "../../settings/SettingsStore";
-import { findHighContrastTheme, isHighContrastTheme } from "../../theme";
-import { useRovingTabIndex } from "../../accessibility/RovingTabIndex";
 import AccessibleButton, { type ButtonEvent } from "../views/elements/AccessibleButton";
 import SdkConfig from "../../SdkConfig";
 import { getHomePageUrl } from "../../utils/pages";
 import { OwnProfileStore } from "../../stores/OwnProfileStore";
 import { UPDATE_EVENT } from "../../stores/AsyncStore";
 import BaseAvatar from "../views/avatars/BaseAvatar";
-import { SettingLevel } from "../../settings/SettingLevel";
 import IconizedContextMenu, {
     IconizedContextMenuOption,
     IconizedContextMenuOptionList,
@@ -49,12 +44,9 @@ import { UIFeature } from "../../settings/UIFeature";
 import SpaceStore from "../../stores/spaces/SpaceStore";
 import { UPDATE_SELECTED_SPACE } from "../../stores/spaces";
 import UserIdentifierCustomisations from "../../customisations/UserIdentifier";
-import PosthogTrackers from "../../PosthogTrackers";
 import { type ViewHomePagePayload } from "../../dispatcher/payloads/ViewHomePagePayload";
 import { SDKContext } from "../../contexts/SDKContext";
 import { shouldShowFeedback } from "../../utils/Feedback";
-import ThemeWatcher, { ThemeWatcherEvent } from "../../settings/watchers/ThemeWatcher.ts";
-import { useTypedEventEmitterState } from "../../hooks/useEventEmitter.ts";
 
 interface IProps {
     isPanelCollapsed: boolean;
@@ -84,50 +76,6 @@ const below = (rect: PartialDOMRect): MenuProps => {
     };
 };
 
-const ThemeSwitchButton = (): JSX.Element => {
-    const [onFocus, isActive, ref] = useRovingTabIndex();
-    const themeWatcher = useMemo(() => new ThemeWatcher(), []);
-    const [isHighContrast, isDark] = useTypedEventEmitterState(
-        themeWatcher,
-        ThemeWatcherEvent.Change,
-        (theme: string) => [isHighContrastTheme(theme), themeWatcher.isUserOnDarkTheme()],
-    );
-
-    const onSwitchThemeClick = (ev: ButtonEvent): void => {
-        ev.preventDefault();
-        ev.stopPropagation();
-
-        PosthogTrackers.trackInteraction("WebUserMenuThemeToggleButton", ev);
-
-        // Disable system theme matching if the user hits this button
-        SettingsStore.setValue("use_system_theme", null, SettingLevel.DEVICE, false);
-
-        let newTheme = isDark ? "light" : "dark";
-        if (isHighContrast) {
-            const hcTheme = findHighContrastTheme(newTheme);
-            if (hcTheme) {
-                newTheme = hcTheme;
-            }
-        }
-        SettingsStore.setValue("theme", null, SettingLevel.DEVICE, newTheme); // set at same level as Appearance tab
-        themeWatcher.recheck(newTheme);
-    };
-
-    return (
-        <IconButton
-            ref={ref}
-            onFocus={onFocus}
-            tabIndex={isActive ? 0 : -1}
-            className="mx_UserMenu_contextMenu_themeButton"
-            onClick={onSwitchThemeClick}
-            tooltip={isDark ? _t("user_menu|switch_theme_light") : _t("user_menu|switch_theme_dark")}
-            size="32px"
-            kind="secondary"
-        >
-            <ThemeIcon />
-        </IconButton>
-    );
-};
 
 export default class UserMenu extends React.Component<IProps, IState> {
     public static contextType = SDKContext;
@@ -391,7 +339,6 @@ export default class UserMenu extends React.Component<IProps, IState> {
                         </span>
                     </div>
 
-                    <ThemeSwitchButton />
                 </div>
                 {topSection}
                 {primaryOptionList}

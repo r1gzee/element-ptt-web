@@ -27,7 +27,6 @@ import { onMetaSpaceChangeFactory } from "../settings/tabs/user/SidebarUserSetti
 import defaultDispatcher from "../../../dispatcher/dispatcher";
 import { Action } from "../../../dispatcher/actions";
 import { UserTab } from "../dialogs/UserTab";
-import QuickThemeSwitcher from "./QuickThemeSwitcher";
 import Modal from "../../../Modal";
 import DevtoolsDialog from "../dialogs/DevtoolsDialog";
 import { SdkContextClass } from "../../../contexts/SDKContext";
@@ -132,7 +131,6 @@ const QuickSettingsButton: React.FC<{
                         </AccessibleButton>
                     </>
                 )}
-                <QuickThemeSwitcher requestClose={closeMenu} />
             </ContextMenu>
         );
     }

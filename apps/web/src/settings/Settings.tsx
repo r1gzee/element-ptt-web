@@ -961,7 +961,7 @@ export const SETTINGS: Settings = {
     },
     "theme": {
         supportedLevels: LEVELS_ACCOUNT_SETTINGS,
-        default: "light",
+        default: "dark",
         controller: new ThemeController(),
     },
     "custom_themes": {
@@ -972,7 +972,7 @@ export const SETTINGS: Settings = {
     },
     "use_system_theme": {
         supportedLevels: LEVELS_DEVICE_ONLY_SETTINGS,
-        default: true,
+        default: false,
         displayName: _td("settings|appearance|match_system_theme"),
     },
     "useBundledEmojiFont": {

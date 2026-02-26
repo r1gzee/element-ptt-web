@@ -8,6 +8,7 @@ Please see LICENSE files in the repository root for full details.
 */
 
 import React, { type ChangeEventHandler, type JSX, type ReactNode, useCallback, useRef } from "react";
+
 import { logger } from "matrix-js-sdk/src/logger";
 import { FALLBACK_ICE_SERVER } from "matrix-js-sdk/src/webrtc/call";
 import { type EmptyObject } from "matrix-js-sdk/src/matrix";
@@ -33,11 +34,9 @@ import { VoiceAudioModeToggle } from "../../../rooms/VoiceAudioModeToggle";
  * Rendered as a sub-section inside VoiceUserSettingsTab.
  */
 function PTTSettings(): JSX.Element {
-    const { keybind, isCapturing, startCapture, cancelCapture,
-            muteToggleKeybind, isMuteCapturing, startMuteCapture, cancelMuteCapture } = usePTTKeybind();
+    const { keybind, isCapturing, startCapture, cancelCapture } = usePTTKeybind();
     const [voiceMode, setVoiceMode] = useVoiceChannelMode();
     const captureRef = useRef<HTMLButtonElement | null>(null);
-    const muteCaptureRef = useRef<HTMLButtonElement | null>(null);
 
     const handleCaptureClick = useCallback(() => {
         if (isCapturing) {
@@ -47,15 +46,6 @@ function PTTSettings(): JSX.Element {
             captureRef.current?.focus();
         }
     }, [isCapturing, startCapture, cancelCapture]);
-
-    const handleMuteCaptureClick = useCallback(() => {
-        if (isMuteCapturing) {
-            cancelMuteCapture();
-        } else {
-            startMuteCapture();
-            muteCaptureRef.current?.focus();
-        }
-    }, [isMuteCapturing, startMuteCapture, cancelMuteCapture]);
 
     return (
         <SettingsSubsection heading={_t("settings|voip|ptt_section")} stretchContent>
@@ -74,24 +64,6 @@ function PTTSettings(): JSX.Element {
                         onClick={handleCaptureClick}
                     >
                         {isCapturing ? _t("action|cancel") : _t("settings|voip|ptt_change_keybind")}
-                    </Button>
-                </div>
-                <Text as="p" size="sm">
-                    {_t("settings|voip|ptt_mute_toggle_keybind_label")}
-                </Text>
-                <div className="mx_PTTSettings_keybind">
-                    <span className="mx_PTTSettings_keybindKey">
-                        {isMuteCapturing
-                            ? _t("settings|voip|ptt_press_any_key")
-                            : muteToggleKeybind || _t("settings|voip|ptt_mute_toggle_none")}
-                    </span>
-                    <Button
-                        ref={muteCaptureRef}
-                        size="sm"
-                        kind={isMuteCapturing ? "destructive" : "secondary"}
-                        onClick={handleMuteCaptureClick}
-                    >
-                        {isMuteCapturing ? _t("action|cancel") : _t("settings|voip|ptt_change_keybind")}
                     </Button>
                 </div>
                 <Text as="p" size="sm">

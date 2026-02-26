@@ -60,7 +60,7 @@
 <feBlend mode="normal" in2="shape" result="effect2_innerShadow_178_1078"/>
 </filter>
 <linearGradient id="paint0_linear_178_1078" x1="512" y1="1024" x2="512" y2="0" gradientUnits="userSpaceOnUse">
-<stop stop-color="#ff641f" stop-opacity="0.41"/>
+<stop stop-color="#ff7f35" stop-opacity="0.41"/>
 <stop offset="0.2" stop-color="#f55a15" stop-opacity="0.23"/>
 <stop offset="0.4" stop-color="#e85010" stop-opacity="0.11"/>
 <stop offset="0.6" stop-color="#d94a0e" stop-opacity="0.06"/>
@@ -69,7 +69,7 @@
 </linearGradient>
 <linearGradient id="paint1_linear_178_1078" x1="512" y1="102" x2="512" y2="922" gradientUnits="userSpaceOnUse">
 <stop stop-color="#ffb88a"/>
-<stop offset="0.33" stop-color="#ff641f"/>
+<stop offset="0.33" stop-color="#ff7f35"/>
 <stop offset="0.66" stop-color="#c43d00"/>
 <stop offset="1" stop-color="#a33200"/>
 </linearGradient>
@@ -78,7 +78,7 @@
 <stop offset="0.25" stop-color="#d94a0e" stop-opacity="0.06"/>
 <stop offset="0.5" stop-color="#e85010" stop-opacity="0.11"/>
 <stop offset="0.75" stop-color="#f55a15" stop-opacity="0.23"/>
-<stop offset="1" stop-color="#ff641f" stop-opacity="0.41"/>
+<stop offset="1" stop-color="#ff7f35" stop-opacity="0.41"/>
 </linearGradient>
 <clipPath id="clip0_178_1078">
 <rect width="1024" height="1024" fill="white"/>

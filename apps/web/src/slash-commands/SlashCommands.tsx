@@ -42,7 +42,6 @@ import SdkConfig from "../SdkConfig";
 import SettingsStore from "../settings/SettingsStore";
 import { UIComponent, UIFeature } from "../settings/UIFeature";
 import { CHAT_EFFECTS } from "../effects";
-import LegacyCallHandler from "../LegacyCallHandler";
 import { guessAndSetDMRoom } from "../Rooms";
 import DevtoolsDialog from "../components/views/dialogs/DevtoolsDialog";
 import InfoDialog from "../components/views/dialogs/InfoDialog";
@@ -699,23 +698,12 @@ export const Commands = [
         description: _td("slash_command|query"),
         args: "<user-id>",
         runFn: function (cli, roomId, threadId, userId) {
-            // easter-egg for now: look up phone numbers through the thirdparty API
-            // (very dumb phone number detection...)
-            const isPhoneNumber = userId && /^\+?[0123456789]+$/.test(userId);
-            if (!userId || ((!userId.startsWith("@") || !userId.includes(":")) && !isPhoneNumber)) {
+            if (!userId || !userId.startsWith("@") || !userId.includes(":")) {
                 return reject(this.getUsage());
             }
 
             return success(
                 (async (): Promise<void> => {
-                    if (isPhoneNumber) {
-                        const results = await LegacyCallHandler.instance.pstnLookup(userId);
-                        if (!results || results.length === 0 || !results[0].userid) {
-                            throw new UserFriendlyError("slash_command|query_not_found_phone_number");
-                        }
-                        userId = results[0].userid;
-                    }
-
                     const roomId = await ensureDMExists(cli, userId);
                     if (!roomId) throw new Error("Failed to ensure DM exists");
 
@@ -763,36 +751,6 @@ export const Commands = [
             return reject(this.getUsage());
         },
         category: CommandCategories.actions,
-    }),
-    new Command({
-        command: "holdcall",
-        description: _td("slash_command|holdcall"),
-        category: CommandCategories.other,
-        isEnabled: (cli) => !isCurrentLocalRoom(cli),
-        runFn: function (cli, roomId, threadId, args) {
-            const call = LegacyCallHandler.instance.getCallForRoom(roomId);
-            if (!call) {
-                return reject(new UserFriendlyError("slash_command|no_active_call"));
-            }
-            call.setRemoteOnHold(true);
-            return success();
-        },
-        renderingTypes: [TimelineRenderingType.Room],
-    }),
-    new Command({
-        command: "unholdcall",
-        description: _td("slash_command|unholdcall"),
-        category: CommandCategories.other,
-        isEnabled: (cli) => !isCurrentLocalRoom(cli),
-        runFn: function (cli, roomId, threadId, args) {
-            const call = LegacyCallHandler.instance.getCallForRoom(roomId);
-            if (!call) {
-                return reject(new UserFriendlyError("slash_command|no_active_call"));
-            }
-            call.setRemoteOnHold(false);
-            return success();
-        },
-        renderingTypes: [TimelineRenderingType.Room],
     }),
     new Command({
         command: "converttodm",

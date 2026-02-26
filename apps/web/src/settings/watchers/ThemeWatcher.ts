@@ -7,15 +7,13 @@ SPDX-License-Identifier: AGPL-3.0-only OR GPL-3.0-only OR LicenseRef-Element-Com
 Please see LICENSE files in the repository root for full details.
 */
 
-import { logger } from "matrix-js-sdk/src/logger";
 import { TypedEventEmitter } from "matrix-js-sdk/src/matrix";
 
 import SettingsStore from "../SettingsStore";
 import dis from "../../dispatcher/dispatcher";
 import { Action } from "../../dispatcher/actions";
-import { findHighContrastTheme, getCustomTheme } from "../../theme";
+import { getCustomTheme } from "../../theme";
 import { type ActionPayload } from "../../dispatcher/payloads";
-import { SettingLevel } from "../SettingLevel";
 
 export enum ThemeWatcherEvent {
     Change = "change",
@@ -85,44 +83,8 @@ export default class ThemeWatcher extends TypedEventEmitter<ThemeWatcherEvent, T
     }
 
     public getEffectiveTheme(): string {
-        // Dev note: Much of this logic is replicated in the AppearanceUserSettingsTab
-
-        // If the user has specifically enabled the system matching option (excluding default),
-        // then use that over anything else. We pick the lowest possible level for the setting
-        // to ensure the ordering otherwise works.
-        const systemThemeExplicit = SettingsStore.getValueAt(
-            SettingLevel.DEVICE,
-            "use_system_theme",
-            null,
-            false,
-            true,
-        );
-        if (systemThemeExplicit) {
-            logger.log("returning explicit system theme");
-            const theme = this.themeBasedOnSystem();
-            if (theme) {
-                return theme;
-            }
-        }
-
-        // If the user has specifically enabled the theme (without the system matching option being
-        // enabled specifically and excluding the default), use that theme. We pick the lowest possible
-        // level for the setting to ensure the ordering otherwise works.
-        const themeExplicit = SettingsStore.getValueAt(SettingLevel.DEVICE, "theme", null, false, true);
-        if (themeExplicit) {
-            logger.log("returning explicit theme: " + themeExplicit);
-            return themeExplicit;
-        }
-
-        // If the user hasn't really made a preference in either direction, assume the defaults of the
-        // settings and use those.
-        if (SettingsStore.getValue("use_system_theme")) {
-            const theme = this.themeBasedOnSystem();
-            if (theme) {
-                return theme;
-            }
-        }
-        return SettingsStore.getValue("theme");
+        // Nexus: always dark
+        return "dark";
     }
 
     /**
@@ -134,22 +96,6 @@ export default class ThemeWatcher extends TypedEventEmitter<ThemeWatcherEvent, T
             return !!getCustomTheme(theme.substring("custom-".length)).is_dark;
         }
         return theme === "dark" || theme === "dark-hc";
-    }
-
-    private themeBasedOnSystem(): string | undefined {
-        let newTheme: string | undefined;
-        if (this.preferDark.matches) {
-            newTheme = "dark";
-        } else if (this.preferLight.matches) {
-            newTheme = "light";
-        }
-        if (newTheme && this.preferHighContrast.matches) {
-            const hcTheme = findHighContrastTheme(newTheme);
-            if (hcTheme) {
-                newTheme = hcTheme;
-            }
-        }
-        return newTheme;
     }
 
     public isSystemThemeSupported(): boolean {

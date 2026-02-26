@@ -1,35 +1,69 @@
-/* Nexus brand overrides — replaces Element green with #ff641f orange */
+/* Nexus brand overrides — replaces Element green with #ff7f35 orange */
 
-/* Orange scale (maps 1:1 to the green-* compound tokens used by $accent-*) */
-:root {
-    --cpd-color-green-100:  #fff4ef;
-    --cpd-color-green-200:  #ffe5d4;
-    --cpd-color-green-300:  #ffc9a3;
-    --cpd-color-green-400:  #ffa872;
-    --cpd-color-green-500:  #ff8544;
-    --cpd-color-green-600:  #ff641f;
-    --cpd-color-green-700:  #e54f0d;
-    --cpd-color-green-800:  #c43d00;
-    --cpd-color-green-900:  #a33200;
-    --cpd-color-green-1000: #822800;
-    --cpd-color-green-1100: #601e00;
-    --cpd-color-green-1200: #3f1400;
-    --cpd-color-green-1300: #280d00;
-    --cpd-color-green-1400: #150600;
+/*
+ * Compound tokens use `.cpd-theme-dark.cpd-theme-dark` (specificity 0,2,0).
+ * We match that selector so our overrides win via cascade order (imported last).
+ */
+
+/* Base green scale — orange equivalents */
+:root,
+.cpd-theme-dark.cpd-theme-dark {
+    --cpd-color-green-100:  #fff5f0;
+    --cpd-color-green-200:  #ffeadc;
+    --cpd-color-green-300:  #ffd3b5;
+    --cpd-color-green-400:  #ffb584;
+    --cpd-color-green-500:  #ff9555;
+    --cpd-color-green-600:  #ff7f35;
+    --cpd-color-green-700:  #e5640d;
+    --cpd-color-green-800:  #c45200;
+    --cpd-color-green-900:  #a34400;
+    --cpd-color-green-1000: #823800;
+    --cpd-color-green-1100: #602a00;
+    --cpd-color-green-1200: #3f1c00;
+    --cpd-color-green-1300: #281200;
+    --cpd-color-green-1400: #150900;
+
+    /* Alpha-green scale — dark orange tints (used for selected/highlight states) */
+    --cpd-color-alpha-green-100: hsl(22, 100%, 6%, 1);
+    --cpd-color-alpha-green-200: hsl(22, 100%, 7%, 1);
+    --cpd-color-alpha-green-300: hsl(22, 100%, 8%, 1);
+    --cpd-color-alpha-green-400: hsl(22, 100%, 10%, 1);
+    --cpd-color-alpha-green-500: hsl(22, 100%, 13%, 1);
+    --cpd-color-alpha-green-600: hsl(22, 100%, 15%, 1);
+    --cpd-color-alpha-green-700: hsl(22, 100%, 19%, 1);
+    --cpd-color-alpha-green-800: hsl(22, 100%, 25%, 1);
+    --cpd-color-alpha-green-900:  hsla(22, 100%, 55%, 0.58);
+    --cpd-color-alpha-green-1000: hsla(22, 100%, 57%, 0.65);
+    --cpd-color-alpha-green-1100: hsla(22, 100%, 59%, 0.74);
+    --cpd-color-alpha-green-1200: hsla(22, 100%, 72%, 0.83);
+    --cpd-color-alpha-green-1300: hsla(22, 100%, 83%, 0.91);
+    --cpd-color-alpha-green-1400: hsla(22, 100%, 90%, 0.96);
 
     /* Primary action buttons / pills */
-    --cpd-color-bg-action-primary-rest:    #c43d00;
-    --cpd-color-bg-action-primary-hovered: #e54f0d;
-    --cpd-color-bg-action-primary-pressed: #a33200;
+    --cpd-color-bg-action-primary-rest:    #c45200;
+    --cpd-color-bg-action-primary-hovered: #e5640d;
+    --cpd-color-bg-action-primary-pressed: #a34400;
 
     /* Accent text / icons */
-    --cpd-color-text-action-accent:  #ff641f;
-    --cpd-color-icon-accent-primary: #ff641f;
+    --cpd-color-text-action-accent:  #ff7f35;
+    --cpd-color-icon-accent-primary: #ff7f35;
 }
 
-/* Dark-specific one-off overrides */
-$reaction-row-button-selected-bg-color: #6b2a00;
-$event-highlight-bg-color: #2a1e15;
+/* Home screen action buttons — belt-and-braces override */
+.mx_HomePage_default_buttons .mx_AccessibleButton {
+    background-color: #ff7f35 !important;
+}
+
+/* Reaction row */
+.mx_ReactionRowButton.mx_ReactionRowButton_selected {
+    background-color: hsl(22, 100%, 21%);
+}
+
+/* Event highlight */
+.mx_EventTile_highlight .mx_EventTile_line,
+.mx_EventTile_highlight .mx_EventTile_msgOption {
+    background-color: #2a1800;
+}
 
 /* Splash page gradient — orange tones */
 .mx_SplashPage::before {

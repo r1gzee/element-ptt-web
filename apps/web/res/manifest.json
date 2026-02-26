@@ -2,7 +2,7 @@
     "name": "Nexus",
     "short_name": "Nexus",
     "display": "standalone",
-    "theme_color": "#ff641f",
+    "theme_color": "#ff7f35",
     "start_url": "index.html",
     "icons": [
         {

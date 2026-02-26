@@ -20,10 +20,8 @@ import { ElementCall, ConnectionState } from "../../../models/Call";
 import { type Call } from "../../../models/Call";
 import { useCall, useConnectionState, useParticipatingMembers } from "../../../hooks/useCall";
 import { usePTT } from "../../../hooks/usePTT";
-import { PTTButton, type PTTButtonState } from "./PTTButton";
 import { VoiceAudioModeToggle } from "./VoiceAudioModeToggle";
 import FacePile from "../elements/FacePile";
-import { usePTTKeybind } from "../../../hooks/usePTTKeybind";
 
 interface VoiceChannelPanelProps {
     room: Room;
@@ -32,8 +30,9 @@ interface VoiceChannelPanelProps {
 /**
  * Collapsible voice channel panel rendered above the message composer.
  *
- * Shows: participants, speaking indicator, PTT button (PTT mode) or mute toggle
- * (Live Audio mode), and a mode toggle.
+ * Shows: participants, mic button (PTT or mute toggle), leave, collapse.
+ * In PTT mode the mic button is a hold-to-talk control; in Live Audio mode it
+ * is a click-to-toggle mute control. Both are placed inline in the header row.
  */
 export function VoiceChannelPanel({ room }: VoiceChannelPanelProps): JSX.Element | null {
     const call = useCall(room.roomId);
@@ -45,7 +44,6 @@ export function VoiceChannelPanel({ room }: VoiceChannelPanelProps): JSX.Element
         usePTT(elementCall);
 
     const participants = useParticipatingMembers(call as Call);
-    const { keybind } = usePTTKeybind();
 
     const [collapsed, setCollapsed] = useState(false);
 
@@ -57,20 +55,46 @@ export function VoiceChannelPanel({ room }: VoiceChannelPanelProps): JSX.Element
         }
     }, [call]);
 
-    const handleMuteToggle = useCallback(() => {
-        toggleMute();
-    }, [toggleMute]);
-
     // Nothing to render when not connected to a call
     if (!isConnected) return null;
 
-    const pttState: PTTButtonState = !isConnected
-        ? "inactive"
-        : isSpeaking
-          ? "speaking"
-          : isFloorOccupied
-            ? "blocked"
-            : "ready";
+    // Mic button: PTT = hold-to-talk, Live = click toggle
+    const micTooltip =
+        voiceMode === "ptt"
+            ? isSpeaking
+                ? _t("voip|disable_microphone")
+                : isFloorOccupied
+                  ? _t("voip|ptt|floor_occupied")
+                  : _t("voip|ptt|push_to_talk")
+            : isSpeaking
+              ? _t("voip|disable_microphone")
+              : _t("voip|enable_microphone");
+
+    const micButton = (
+        <Tooltip label={micTooltip}>
+            <IconButton
+                aria-label={micTooltip}
+                aria-pressed={isSpeaking}
+                size="sm"
+                className={classNames("mx_VoiceChannelPanel_micButton", {
+                    mx_VoiceChannelPanel_micButton_active: isSpeaking,
+                    mx_VoiceChannelPanel_micButton_blocked: voiceMode === "ptt" && isFloorOccupied && !isSpeaking,
+                })}
+                onPointerDown={
+                    voiceMode === "ptt"
+                        ? (e) => {
+                              e.preventDefault();
+                              startSpeaking();
+                          }
+                        : undefined
+                }
+                onPointerUp={voiceMode === "ptt" ? () => stopSpeaking() : undefined}
+                onClick={voiceMode !== "ptt" ? toggleMute : undefined}
+            >
+                {isSpeaking ? <MicIcon /> : <MicOffIcon />}
+            </IconButton>
+        </Tooltip>
+    );
 
     const panelClass = classNames("mx_VoiceChannelPanel", {
         mx_VoiceChannelPanel_collapsed: collapsed,
@@ -90,6 +114,7 @@ export function VoiceChannelPanel({ room }: VoiceChannelPanelProps): JSX.Element
                     </Text>
                 </div>
                 <div className="mx_VoiceChannelPanel_controls">
+                    {micButton}
                     <Tooltip label={_t("action|leave")}>
                         <IconButton onClick={handleLeave} aria-label={_t("action|leave")} size="sm">
                             <LeaveIcon />
@@ -107,31 +132,9 @@ export function VoiceChannelPanel({ room }: VoiceChannelPanelProps): JSX.Element
                 </div>
             </div>
 
-            {/* Body — hidden when collapsed */}
+            {/* Body — mode toggle, hidden when collapsed */}
             {!collapsed && (
                 <div className="mx_VoiceChannelPanel_body">
-                    {voiceMode === "ptt" ? (
-                        <PTTButton
-                            state={pttState}
-                            keybindLabel={keybind}
-                            onPTTStart={startSpeaking}
-                            onPTTEnd={stopSpeaking}
-                        />
-                    ) : (
-                        /* Live Audio mode: show a regular mute/unmute toggle */
-                        <Tooltip label={isSpeaking ? _t("voip|disable_microphone") : _t("voip|enable_microphone")}>
-                            <IconButton
-                                onClick={handleMuteToggle}
-                                aria-label={isSpeaking ? _t("voip|disable_microphone") : _t("voip|enable_microphone")}
-                                aria-pressed={isSpeaking}
-                                className={classNames("mx_VoiceChannelPanel_muteButton", {
-                                    mx_VoiceChannelPanel_muteButton_muted: !isSpeaking,
-                                })}
-                            >
-                                {isSpeaking ? <MicIcon /> : <MicOffIcon />}
-                            </IconButton>
-                        </Tooltip>
-                    )}
                     <VoiceAudioModeToggle mode={voiceMode} onChange={setVoiceMode} />
                 </div>
             )}

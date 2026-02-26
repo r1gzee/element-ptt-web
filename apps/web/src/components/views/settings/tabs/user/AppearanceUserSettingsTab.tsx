@@ -20,7 +20,6 @@ import { SettingLevel } from "../../../../../settings/SettingLevel";
 import { UIFeature } from "../../../../../settings/UIFeature";
 import { LayoutSwitcher } from "../../LayoutSwitcher";
 import FontScalingPanel from "../../FontScalingPanel";
-import { ThemeChoicePanel } from "../../ThemeChoicePanel";
 import ImageSizePanel from "../../ImageSizePanel";
 import SettingsTab from "../SettingsTab";
 import { SettingsSection } from "../../shared/SettingsSection";
@@ -108,7 +107,6 @@ export default class AppearanceUserSettingsTab extends React.Component<EmptyObje
         return (
             <SettingsTab data-testid="mx_AppearanceUserSettingsTab">
                 <SettingsSection>
-                    <ThemeChoicePanel />
                     <LayoutSwitcher />
                     <FontScalingPanel />
                     {this.renderAdvancedSection()}

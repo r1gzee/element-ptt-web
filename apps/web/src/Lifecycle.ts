@@ -46,7 +46,6 @@ import { Jitsi } from "./widgets/Jitsi";
 import { SSO_HOMESERVER_URL_KEY, SSO_ID_SERVER_URL_KEY, SSO_IDP_ID_KEY } from "./BasePlatform";
 import ThreepidInviteStore from "./stores/ThreepidInviteStore";
 import { PosthogAnalytics } from "./PosthogAnalytics";
-import LegacyCallHandler from "./LegacyCallHandler";
 import LifecycleCustomisations from "./customisations/Lifecycle";
 import ErrorDialog from "./components/views/dialogs/ErrorDialog";
 import { _t } from "./languageHandler";
@@ -1070,7 +1069,6 @@ async function startMatrixClient(
     DMRoomMap.makeShared(client).start();
     IntegrationManagers.sharedInstance().startWatching();
     ActiveWidgetStore.instance.start();
-    LegacyCallHandler.instance.start();
     checkBrowserSupport();
 
     // Start Mjolnir even though we haven't checked the feature flag yet. Starting
@@ -1197,7 +1195,6 @@ export async function clearStorage(opts?: { deleteEverything?: boolean }): Promi
  */
 export function stopMatrixClient(unsetClient = true): void {
     Notifier.stop();
-    LegacyCallHandler.instance.stop();
     UserActivity.sharedInstance().stop();
     SdkContextClass.instance.typingStore.reset();
     Presence.stop();

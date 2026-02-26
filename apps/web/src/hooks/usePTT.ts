@@ -49,7 +49,7 @@ export function usePTT(call: ElementCall | null): UsePTTResult {
     const [isSpeaking, setIsSpeaking] = useState(false);
     const [isFloorOccupied, setIsFloorOccupied] = useState(false);
     const [voiceMode, setVoiceModeState] = useVoiceChannelMode();
-    const { keybind, muteToggleKeybind } = usePTTKeybind();
+    const { keybind } = usePTTKeybind();
 
     // Keep refs to avoid stale closures in event handlers.
     const callRef = useRef(call);
@@ -127,21 +127,29 @@ export function usePTT(call: ElementCall | null): UsePTTResult {
     }, [call, isConnected, voiceMode, queueSetAudio]);
 
     // ---------------------------------------------------------------------------
-    // PTT keyboard shortcut — web (tab-focused only)
+    // Keyboard shortcut — web (tab-focused only)
+    // PTT mode: hold to talk. Live mode: toggle mute.
     // ---------------------------------------------------------------------------
 
     useEffect(() => {
-        if (!isConnected || voiceMode !== "ptt") return;
+        if (!isConnected) return;
         if (window.electron) return;
+        if (!keybind) return;
 
         const onKeyDown = (e: KeyboardEvent): void => {
             if (e.code !== keybind || e.repeat) return;
             e.preventDefault();
-            startSpeaking();
+            if (voiceModeRef.current === "ptt") {
+                startSpeaking();
+            } else {
+                toggleMute();
+            }
         };
         const onKeyUp = (e: KeyboardEvent): void => {
             if (e.code !== keybind) return;
-            stopSpeaking();
+            if (voiceModeRef.current === "ptt") {
+                stopSpeaking();
+            }
         };
 
         window.addEventListener("keydown", onKeyDown);
@@ -150,25 +158,7 @@ export function usePTT(call: ElementCall | null): UsePTTResult {
             window.removeEventListener("keydown", onKeyDown);
             window.removeEventListener("keyup", onKeyUp);
         };
-    }, [isConnected, voiceMode, keybind, startSpeaking, stopSpeaking]);
-
-    // ---------------------------------------------------------------------------
-    // Mute-toggle keyboard shortcut — web (works in both modes)
-    // ---------------------------------------------------------------------------
-
-    useEffect(() => {
-        if (!isConnected || !muteToggleKeybind) return;
-        if (window.electron) return;
-
-        const onKeyDown = (e: KeyboardEvent): void => {
-            if (e.code !== muteToggleKeybind || e.repeat) return;
-            e.preventDefault();
-            toggleMute();
-        };
-
-        window.addEventListener("keydown", onKeyDown);
-        return () => window.removeEventListener("keydown", onKeyDown);
-    }, [isConnected, muteToggleKeybind, toggleMute]);
+    }, [isConnected, keybind, startSpeaking, stopSpeaking, toggleMute]);
 
     // ---------------------------------------------------------------------------
     // Electron IPC — global shortcut events from main process
