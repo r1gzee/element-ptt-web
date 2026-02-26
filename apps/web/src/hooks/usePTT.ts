@@ -69,14 +69,15 @@ export function usePTT(call: ElementCall | null): UsePTTResult {
     /** Queue a mute/unmute so widget actions never run concurrently. */
     const queueSetAudio = useCallback((enabled: boolean): void => {
         muteQueueRef.current = muteQueueRef.current.then(async () => {
-            const c = callRef.current;
-            if (!c) return;
+            const activeCall = callRef.current;
+            if (!activeCall) return;
             try {
-                await c.setAudioEnabled(enabled);
+                await activeCall.setAudioEnabled(enabled);
             } catch (e) {
                 logger.error(`PTT: failed to ${enabled ? "unmute" : "mute"} microphone`, e);
                 // Revert optimistic UI state on failure.
-                setIsSpeaking(enabled ? false : isSpeakingRef.current);
+                const revertedState = enabled ? false : isSpeakingRef.current;
+                setIsSpeaking(revertedState);
             }
         });
     }, []);

@@ -27,6 +27,12 @@ interface PTTButtonProps {
     onPTTEnd: () => void;
 }
 
+function getPTTTooltip(state: PTTButtonState, keybindLabel: string): string {
+    if (state === "blocked") return _t("voip|ptt|floor_occupied");
+    if (state === "speaking") return _t("voip|ptt|release_to_stop");
+    return _t("voip|ptt|hold_to_speak", { key: keybindLabel });
+}
+
 /**
  * Large hold-to-speak PTT button.
  *
@@ -37,6 +43,9 @@ interface PTTButtonProps {
  * - **blocked** (dim)     — another participant is speaking
  */
 export function PTTButton({ state, keybindLabel, onPTTStart, onPTTEnd }: PTTButtonProps): JSX.Element {
+    const canActivate = state !== "blocked" && state !== "inactive";
+    const tooltip = getPTTTooltip(state, keybindLabel);
+
     const className = classNames("mx_PTTButton", {
         mx_PTTButton_inactive: state === "inactive",
         mx_PTTButton_ready: state === "ready",
@@ -44,39 +53,16 @@ export function PTTButton({ state, keybindLabel, onPTTStart, onPTTEnd }: PTTButt
         mx_PTTButton_blocked: state === "blocked",
     });
 
-    const tooltip =
-        state === "blocked"
-            ? _t("voip|ptt|floor_occupied")
-            : state === "speaking"
-              ? _t("voip|ptt|release_to_stop")
-              : _t("voip|ptt|hold_to_speak", { key: keybindLabel });
-
-    const handleMouseDown = useCallback(
-        (e: React.MouseEvent) => {
+    const handlePTTStart = useCallback(
+        (e: React.MouseEvent | React.TouchEvent) => {
             e.preventDefault();
-            if (state !== "blocked" && state !== "inactive") onPTTStart();
+            if (canActivate) onPTTStart();
         },
-        [state, onPTTStart],
+        [canActivate, onPTTStart],
     );
 
-    const handleMouseUp = useCallback(
-        (e: React.MouseEvent) => {
-            e.preventDefault();
-            onPTTEnd();
-        },
-        [onPTTEnd],
-    );
-
-    const handleTouchStart = useCallback(
-        (e: React.TouchEvent) => {
-            e.preventDefault();
-            if (state !== "blocked" && state !== "inactive") onPTTStart();
-        },
-        [state, onPTTStart],
-    );
-
-    const handleTouchEnd = useCallback(
-        (e: React.TouchEvent) => {
+    const handlePTTEnd = useCallback(
+        (e: React.MouseEvent | React.TouchEvent) => {
             e.preventDefault();
             onPTTEnd();
         },
@@ -88,12 +74,12 @@ export function PTTButton({ state, keybindLabel, onPTTStart, onPTTEnd }: PTTButt
             <AccessibleButton
                 className={className}
                 onClick={null}
-                onMouseDown={handleMouseDown}
-                onMouseUp={handleMouseUp}
-                onMouseLeave={handleMouseUp}
-                onTouchStart={handleTouchStart}
-                onTouchEnd={handleTouchEnd}
-                disabled={state === "blocked" || state === "inactive"}
+                onMouseDown={handlePTTStart}
+                onMouseUp={handlePTTEnd}
+                onMouseLeave={handlePTTEnd}
+                onTouchStart={handlePTTStart}
+                onTouchEnd={handlePTTEnd}
+                disabled={!canActivate}
                 aria-label={tooltip}
                 aria-pressed={state === "speaking"}
             >

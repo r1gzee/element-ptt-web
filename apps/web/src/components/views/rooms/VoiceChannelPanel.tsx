@@ -20,11 +20,62 @@ import { ElementCall, ConnectionState } from "../../../models/Call";
 import { type Call } from "../../../models/Call";
 import { useCall, useConnectionState, useParticipatingMembers } from "../../../hooks/useCall";
 import { usePTT } from "../../../hooks/usePTT";
+import { type VoiceMode } from "../../../hooks/useVoiceChannelMode";
 import { VoiceAudioModeToggle } from "./VoiceAudioModeToggle";
 import FacePile from "../elements/FacePile";
 
 interface VoiceChannelPanelProps {
     room: Room;
+}
+
+function getMicTooltip(voiceMode: VoiceMode, isSpeaking: boolean, isFloorOccupied: boolean): string {
+    if (voiceMode !== "ptt") {
+        return isSpeaking ? _t("voip|disable_microphone") : _t("voip|enable_microphone");
+    }
+    if (isSpeaking) return _t("voip|disable_microphone");
+    if (isFloorOccupied) return _t("voip|ptt|floor_occupied");
+    return _t("voip|ptt|push_to_talk");
+}
+
+interface MicButtonProps {
+    voiceMode: VoiceMode;
+    isSpeaking: boolean;
+    isFloorOccupied: boolean;
+    onPTTStart: () => void;
+    onPTTEnd: () => void;
+    onToggleMute: () => void;
+}
+
+function MicButton({ voiceMode, isSpeaking, isFloorOccupied, onPTTStart, onPTTEnd, onToggleMute }: MicButtonProps): JSX.Element {
+    const tooltip = getMicTooltip(voiceMode, isSpeaking, isFloorOccupied);
+    const isBlocked = voiceMode === "ptt" && isFloorOccupied && !isSpeaking;
+
+    const handlePointerDown = useCallback(
+        (e: React.PointerEvent) => {
+            e.preventDefault();
+            onPTTStart();
+        },
+        [onPTTStart],
+    );
+
+    return (
+        <Tooltip label={tooltip}>
+            <IconButton
+                aria-label={tooltip}
+                aria-pressed={isSpeaking}
+                size="sm"
+                className={classNames("mx_VoiceChannelPanel_micButton", {
+                    mx_VoiceChannelPanel_micButton_active: isSpeaking,
+                    mx_VoiceChannelPanel_micButton_blocked: isBlocked,
+                })}
+                onPointerDown={voiceMode === "ptt" ? handlePointerDown : undefined}
+                onPointerUp={voiceMode === "ptt" ? onPTTEnd : undefined}
+                onClick={voiceMode !== "ptt" ? onToggleMute : undefined}
+            >
+                {isSpeaking ? <MicIcon /> : <MicOffIcon />}
+            </IconButton>
+        </Tooltip>
+    );
 }
 
 /**
@@ -44,65 +95,25 @@ export function VoiceChannelPanel({ room }: VoiceChannelPanelProps): JSX.Element
         usePTT(elementCall);
 
     const participants = useParticipatingMembers(call as Call);
-
     const [collapsed, setCollapsed] = useState(false);
 
     const handleLeave = useCallback(async () => {
-        try {
-            await call?.disconnect();
-        } catch {
+        await call?.disconnect().catch(() => {
             /* call already disconnected */
-        }
+        });
     }, [call]);
 
-    // Nothing to render when not connected to a call
+    const toggleCollapsed = useCallback(() => setCollapsed((current) => !current), []);
+
     if (!isConnected) return null;
 
-    // Mic button: PTT = hold-to-talk, Live = click toggle
-    const micTooltip =
-        voiceMode === "ptt"
-            ? isSpeaking
-                ? _t("voip|disable_microphone")
-                : isFloorOccupied
-                  ? _t("voip|ptt|floor_occupied")
-                  : _t("voip|ptt|push_to_talk")
-            : isSpeaking
-              ? _t("voip|disable_microphone")
-              : _t("voip|enable_microphone");
-
-    const micButton = (
-        <Tooltip label={micTooltip}>
-            <IconButton
-                aria-label={micTooltip}
-                aria-pressed={isSpeaking}
-                size="sm"
-                className={classNames("mx_VoiceChannelPanel_micButton", {
-                    mx_VoiceChannelPanel_micButton_active: isSpeaking,
-                    mx_VoiceChannelPanel_micButton_blocked: voiceMode === "ptt" && isFloorOccupied && !isSpeaking,
-                })}
-                onPointerDown={
-                    voiceMode === "ptt"
-                        ? (e) => {
-                              e.preventDefault();
-                              startSpeaking();
-                          }
-                        : undefined
-                }
-                onPointerUp={voiceMode === "ptt" ? () => stopSpeaking() : undefined}
-                onClick={voiceMode !== "ptt" ? toggleMute : undefined}
-            >
-                {isSpeaking ? <MicIcon /> : <MicOffIcon />}
-            </IconButton>
-        </Tooltip>
-    );
-
+    const collapseLabel = collapsed ? _t("action|expand") : _t("action|collapse");
     const panelClass = classNames("mx_VoiceChannelPanel", {
         mx_VoiceChannelPanel_collapsed: collapsed,
     });
 
     return (
         <div className={panelClass} data-testid="voice-channel-panel">
-            {/* Header row */}
             <div className="mx_VoiceChannelPanel_header">
                 <Text as="span" size="sm" weight="semibold" className="mx_VoiceChannelPanel_title">
                     {_t("voip|voice_channel")}
@@ -114,25 +125,27 @@ export function VoiceChannelPanel({ room }: VoiceChannelPanelProps): JSX.Element
                     </Text>
                 </div>
                 <div className="mx_VoiceChannelPanel_controls">
-                    {micButton}
+                    <MicButton
+                        voiceMode={voiceMode}
+                        isSpeaking={isSpeaking}
+                        isFloorOccupied={isFloorOccupied}
+                        onPTTStart={startSpeaking}
+                        onPTTEnd={stopSpeaking}
+                        onToggleMute={toggleMute}
+                    />
                     <Tooltip label={_t("action|leave")}>
                         <IconButton onClick={handleLeave} aria-label={_t("action|leave")} size="sm">
                             <LeaveIcon />
                         </IconButton>
                     </Tooltip>
-                    <Tooltip label={collapsed ? _t("action|expand") : _t("action|collapse")}>
-                        <IconButton
-                            onClick={() => setCollapsed((c) => !c)}
-                            aria-label={collapsed ? _t("action|expand") : _t("action|collapse")}
-                            size="sm"
-                        >
+                    <Tooltip label={collapseLabel}>
+                        <IconButton onClick={toggleCollapsed} aria-label={collapseLabel} size="sm">
                             {collapsed ? <ChevronUpIcon /> : <ChevronDownIcon />}
                         </IconButton>
                     </Tooltip>
                 </div>
             </div>
 
-            {/* Body — mode toggle, hidden when collapsed */}
             {!collapsed && (
                 <div className="mx_VoiceChannelPanel_body">
                     <VoiceAudioModeToggle mode={voiceMode} onChange={setVoiceMode} />
