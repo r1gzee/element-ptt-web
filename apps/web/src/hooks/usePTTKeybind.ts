@@ -8,7 +8,7 @@ Please see LICENSE files in the repository root for full details.
 import { useState, useEffect, useCallback } from "react";
 import { useLocalStorageState } from "./useLocalStorageState";
 
-export const DEFAULT_PTT_KEYBIND = "Space";
+export const DEFAULT_PTT_KEYBIND = "Backquote";
 
 /**
  * Hook that manages the user-configured PTT key binding.
