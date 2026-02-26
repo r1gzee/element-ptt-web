@@ -24,6 +24,7 @@ catalog:
     matrix-web-i18n: 3.6.0
     # fonts
     "@fontsource/inter": 5.2.8
+    "@fontsource/lato": 5.2.5
 packageExtensions:
     fdir:
         dependencies:

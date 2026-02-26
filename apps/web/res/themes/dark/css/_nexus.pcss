@@ -1,0 +1,41 @@
+/* Nexus brand overrides — replaces Element green with #ff641f orange */
+
+/* Orange scale (maps 1:1 to the green-* compound tokens used by $accent-*) */
+:root {
+    --cpd-color-green-100:  #fff4ef;
+    --cpd-color-green-200:  #ffe5d4;
+    --cpd-color-green-300:  #ffc9a3;
+    --cpd-color-green-400:  #ffa872;
+    --cpd-color-green-500:  #ff8544;
+    --cpd-color-green-600:  #ff641f;
+    --cpd-color-green-700:  #e54f0d;
+    --cpd-color-green-800:  #c43d00;
+    --cpd-color-green-900:  #a33200;
+    --cpd-color-green-1000: #822800;
+    --cpd-color-green-1100: #601e00;
+    --cpd-color-green-1200: #3f1400;
+    --cpd-color-green-1300: #280d00;
+    --cpd-color-green-1400: #150600;
+
+    /* Primary action buttons / pills */
+    --cpd-color-bg-action-primary-rest:    #c43d00;
+    --cpd-color-bg-action-primary-hovered: #e54f0d;
+    --cpd-color-bg-action-primary-pressed: #a33200;
+
+    /* Accent text / icons */
+    --cpd-color-text-action-accent:  #ff641f;
+    --cpd-color-icon-accent-primary: #ff641f;
+}
+
+/* Dark-specific one-off overrides */
+$reaction-row-button-selected-bg-color: #6b2a00;
+$event-highlight-bg-color: #2a1e15;
+
+/* Splash page gradient — orange tones */
+.mx_SplashPage::before {
+    background-image:
+        radial-gradient(53.85% 66.75% at 87.55% 0%, hsla(0deg, 0%, 11%, 0.15) 0%, hsla(25deg, 100%, 88%, 0) 100%),
+        radial-gradient(41.93% 41.93% at 0% 0%, hsla(0deg, 0%, 38%, 0.28) 0%, hsla(25deg, 100%, 88%, 0) 100%),
+        radial-gradient(100% 100% at 0% 0%, hsla(25deg, 100%, 88%, 0.3) 0%, hsla(15deg, 100%, 86%, 0) 100%),
+        radial-gradient(106.35% 96.26% at 100% 0%, hsla(25deg, 100%, 88%, 0.5) 0%, hsla(35deg, 90%, 82%, 0) 100%) !important;
+}

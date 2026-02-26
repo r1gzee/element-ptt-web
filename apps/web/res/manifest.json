@@ -1,8 +1,8 @@
 {
-    "name": "Element",
-    "short_name": "Element",
+    "name": "Nexus",
+    "short_name": "Nexus",
     "display": "standalone",
-    "theme_color": "#76CFA6",
+    "theme_color": "#ff641f",
     "start_url": "index.html",
     "icons": [
         {
