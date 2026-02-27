@@ -43,7 +43,6 @@ export function usePTTKeybind(): {
         const onKeyDown = (e: KeyboardEvent): void => {
             e.preventDefault();
             e.stopPropagation();
-            if (["Shift", "Control", "Alt", "Meta"].includes(e.key)) return;
             setKeybind(e.code);
             setIsCapturing(false);
             if (window.electron) window.electron.send("ptt-register", e.code);

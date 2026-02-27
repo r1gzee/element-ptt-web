@@ -19,5 +19,5 @@ export type VoiceMode = "ptt" | "live";
  * Persisted per-device in localStorage.
  */
 export function useVoiceChannelMode(): [VoiceMode, (mode: VoiceMode) => void] {
-    return useLocalStorageState<VoiceMode>("voice_channel_mode", "ptt");
+    return useLocalStorageState<VoiceMode>("voice_channel_mode", "live");
 }

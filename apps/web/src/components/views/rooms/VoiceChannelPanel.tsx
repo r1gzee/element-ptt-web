@@ -21,7 +21,6 @@ import { type Call } from "../../../models/Call";
 import { useCall, useConnectionState, useParticipatingMembers } from "../../../hooks/useCall";
 import { usePTT } from "../../../hooks/usePTT";
 import { type VoiceMode } from "../../../hooks/useVoiceChannelMode";
-import { VoiceAudioModeToggle } from "./VoiceAudioModeToggle";
 import FacePile from "../elements/FacePile";
 
 interface VoiceChannelPanelProps {
@@ -63,7 +62,7 @@ function MicButton({ voiceMode, isSpeaking, isFloorOccupied, onPTTStart, onPTTEn
             <IconButton
                 aria-label={tooltip}
                 aria-pressed={isSpeaking}
-                size="sm"
+                size="lg"
                 className={classNames("mx_VoiceChannelPanel_micButton", {
                     mx_VoiceChannelPanel_micButton_active: isSpeaking,
                     mx_VoiceChannelPanel_micButton_blocked: isBlocked,
@@ -91,7 +90,7 @@ export function VoiceChannelPanel({ room }: VoiceChannelPanelProps): JSX.Element
     const connectionState = useConnectionState(call);
     const isConnected = connectionState === ConnectionState.Connected;
 
-    const { isSpeaking, startSpeaking, stopSpeaking, toggleMute, isFloorOccupied, voiceMode, setVoiceMode } =
+    const { isSpeaking, startSpeaking, stopSpeaking, toggleMute, isFloorOccupied, voiceMode } =
         usePTT(elementCall);
 
     const participants = useParticipatingMembers(call as Call);
@@ -146,11 +145,6 @@ export function VoiceChannelPanel({ room }: VoiceChannelPanelProps): JSX.Element
                 </div>
             </div>
 
-            {!collapsed && (
-                <div className="mx_VoiceChannelPanel_body">
-                    <VoiceAudioModeToggle mode={voiceMode} onChange={setVoiceMode} />
-                </div>
-            )}
         </div>
     );
 }
