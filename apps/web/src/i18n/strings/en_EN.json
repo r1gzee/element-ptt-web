@@ -4010,7 +4010,8 @@
             "push_to_talk": "Push to Talk",
             "live_audio": "Live Audio",
             "toggle_label": "Switch between Push to Talk and Live Audio mode"
-        }
+        },
+        "muted": "Muted"
     },
     "web_default_device_name": "%(appName)s: %(browserName)s on %(osName)s",
     "welcome_to_element": "Welcome to Nexus",

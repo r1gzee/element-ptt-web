@@ -36,6 +36,15 @@ function getMicTooltip(voiceMode: VoiceMode, isSpeaking: boolean, isFloorOccupie
     return _t("voip|ptt|push_to_talk");
 }
 
+function getMicLabel(voiceMode: VoiceMode, isSpeaking: boolean, isFloorOccupied: boolean): string {
+    if (voiceMode === "ptt") {
+        if (isSpeaking) return _t("voip|ptt|speaking");
+        if (isFloorOccupied) return _t("voip|ptt|floor_occupied");
+        return _t("voip|ptt|push_to_talk");
+    }
+    return isSpeaking ? _t("voip|ptt|speaking") : _t("voip|muted");
+}
+
 interface MicButtonProps {
     voiceMode: VoiceMode;
     isSpeaking: boolean;
@@ -47,6 +56,7 @@ interface MicButtonProps {
 
 function MicButton({ voiceMode, isSpeaking, isFloorOccupied, onPTTStart, onPTTEnd, onToggleMute }: MicButtonProps): JSX.Element {
     const tooltip = getMicTooltip(voiceMode, isSpeaking, isFloorOccupied);
+    const label = getMicLabel(voiceMode, isSpeaking, isFloorOccupied);
     const isBlocked = voiceMode === "ptt" && isFloorOccupied && !isSpeaking;
 
     const handlePointerDown = useCallback(
@@ -58,22 +68,27 @@ function MicButton({ voiceMode, isSpeaking, isFloorOccupied, onPTTStart, onPTTEn
     );
 
     return (
-        <Tooltip label={tooltip}>
-            <IconButton
-                aria-label={tooltip}
-                aria-pressed={isSpeaking}
-                size="lg"
-                className={classNames("mx_VoiceChannelPanel_micButton", {
-                    mx_VoiceChannelPanel_micButton_active: isSpeaking,
-                    mx_VoiceChannelPanel_micButton_blocked: isBlocked,
-                })}
-                onPointerDown={voiceMode === "ptt" ? handlePointerDown : undefined}
-                onPointerUp={voiceMode === "ptt" ? onPTTEnd : undefined}
-                onClick={voiceMode !== "ptt" ? onToggleMute : undefined}
-            >
-                {isSpeaking ? <MicIcon /> : <MicOffIcon />}
-            </IconButton>
-        </Tooltip>
+        <div className="mx_VoiceChannelPanel_micWrapper">
+            <Tooltip label={tooltip}>
+                <IconButton
+                    aria-label={tooltip}
+                    aria-pressed={isSpeaking}
+                    size="40px"
+                    className={classNames("mx_VoiceChannelPanel_micButton", {
+                        mx_VoiceChannelPanel_micButton_active: isSpeaking,
+                        mx_VoiceChannelPanel_micButton_blocked: isBlocked,
+                    })}
+                    onPointerDown={voiceMode === "ptt" ? handlePointerDown : undefined}
+                    onPointerUp={voiceMode === "ptt" ? onPTTEnd : undefined}
+                    onClick={voiceMode !== "ptt" ? onToggleMute : undefined}
+                >
+                    {isSpeaking ? <MicIcon /> : <MicOffIcon />}
+                </IconButton>
+            </Tooltip>
+            <Text as="span" size="xs" className="mx_VoiceChannelPanel_micLabel">
+                {label}
+            </Text>
+        </div>
     );
 }
 
