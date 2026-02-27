@@ -8,7 +8,7 @@ Please see LICENSE files in the repository root for full details.
 import { useState, useEffect, useCallback } from "react";
 import { useLocalStorageState } from "./useLocalStorageState";
 
-export const DEFAULT_PTT_KEYBIND = "Backquote";
+export const DEFAULT_PTT_KEYBIND = "ControlLeft";
 
 /**
  * Hook that manages the user-configured PTT key binding.
@@ -30,7 +30,7 @@ export function usePTTKeybind(): {
     startCapture: () => void;
     cancelCapture: () => void;
 } {
-    const [keybind, setKeybind] = useLocalStorageState<string>("ptt_keybind_v2", DEFAULT_PTT_KEYBIND);
+    const [keybind, setKeybind] = useLocalStorageState<string>("ptt_keybind_v3", DEFAULT_PTT_KEYBIND);
     const [isCapturing, setIsCapturing] = useState(false);
 
     const startCapture = useCallback(() => setIsCapturing(true), []);

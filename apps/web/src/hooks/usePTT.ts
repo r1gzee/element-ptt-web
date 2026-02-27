@@ -139,18 +139,14 @@ export function usePTT(call: ElementCall | null): UsePTTResult {
 
         const onKeyDown = (e: KeyboardEvent): void => {
             if (e.code !== keybind || e.repeat) return;
+            if (voiceModeRef.current !== "ptt") return;
             e.preventDefault();
-            if (voiceModeRef.current === "ptt") {
-                startSpeaking();
-            } else {
-                toggleMute();
-            }
+            startSpeaking();
         };
         const onKeyUp = (e: KeyboardEvent): void => {
             if (e.code !== keybind) return;
-            if (voiceModeRef.current === "ptt") {
-                stopSpeaking();
-            }
+            if (voiceModeRef.current !== "ptt") return;
+            stopSpeaking();
         };
 
         window.addEventListener("keydown", onKeyDown);
@@ -159,7 +155,7 @@ export function usePTT(call: ElementCall | null): UsePTTResult {
             window.removeEventListener("keydown", onKeyDown);
             window.removeEventListener("keyup", onKeyUp);
         };
-    }, [isConnected, keybind, startSpeaking, stopSpeaking, toggleMute]);
+    }, [isConnected, keybind, startSpeaking, stopSpeaking]);
 
     // ---------------------------------------------------------------------------
     // Electron IPC — global shortcut events from main process
@@ -169,17 +165,15 @@ export function usePTT(call: ElementCall | null): UsePTTResult {
         if (!isConnected) return;
         if (!window.electron) return;
 
-        // Handle both PTT (hold) and live (toggle) modes.
-        // voiceModeRef.current is read at event time to avoid stale closures.
+        // PTT key only active in PTT mode. In live-audio mode the mic is
+        // always on and controlled only by the panel button, not the keybind.
         const onPTTDown = (): void => {
-            if (voiceModeRef.current === "ptt") {
-                startSpeaking();
-            } else {
-                toggleMute();
-            }
+            if (voiceModeRef.current !== "ptt") return;
+            startSpeaking();
         };
         const onPTTUp = (): void => {
-            if (voiceModeRef.current === "ptt") stopSpeaking();
+            if (voiceModeRef.current !== "ptt") return;
+            stopSpeaking();
         };
 
         window.electron.on("ptt-keydown", onPTTDown);
@@ -192,7 +186,7 @@ export function usePTT(call: ElementCall | null): UsePTTResult {
             window.electron!.off("ptt-keyup", onPTTUp);
             window.electron!.send("ptt-unregister", keybind);
         };
-    }, [isConnected, keybind, startSpeaking, stopSpeaking, toggleMute]);
+    }, [isConnected, keybind, startSpeaking, stopSpeaking]);
 
     // Clean up global shortcut when call disconnects
     useEffect(() => {
