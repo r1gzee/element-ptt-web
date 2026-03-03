@@ -868,7 +868,7 @@ export const SETTINGS: Settings = {
     "autoplayGifs": {
         supportedLevels: LEVELS_ACCOUNT_SETTINGS,
         displayName: _td("settings|autoplay_gifs"),
-        default: false,
+        default: true,
     },
     "autoplayVideo": {
         supportedLevels: LEVELS_ACCOUNT_SETTINGS,
