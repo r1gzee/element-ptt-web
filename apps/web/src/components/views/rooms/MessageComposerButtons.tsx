@@ -39,6 +39,8 @@ import { useDispatcher } from "../../../hooks/useDispatcher";
 import { chromeFileInputFix } from "../../../utils/BrowserWorkarounds";
 import IconizedContextMenu, { IconizedContextMenuOptionList } from "../context_menus/IconizedContextMenu";
 import { EmojiButton } from "./EmojiButton";
+import { GifButton } from "./GifButton";
+import { type GiphyGif } from "./GifPicker";
 import { filterBoolean } from "../../../utils/arrays";
 import { useSettingValue } from "../../../hooks/useSettings";
 import AccessibleButton, { type ButtonEvent } from "../elements/AccessibleButton";
@@ -46,6 +48,7 @@ import { useScopedRoomContext } from "../../../contexts/ScopedRoomContext.tsx";
 
 interface IProps {
     addEmoji: (emoji: string) => boolean;
+    onInsertGif: (gif: GiphyGif) => void;
     haveRecording: boolean;
     isMenuOpen: boolean;
     isStickerPickerOpen: boolean;
@@ -90,6 +93,7 @@ const MessageComposerButtons: React.FC<IProps> = (props: IProps) => {
         ];
         moreButtons = [
             uploadButton(), // props passed via UploadButtonContext
+            gifButton(props),
             showStickersButton(props),
             voiceRecordingButton(props, narrow),
             props.showPollsButton ? pollButton(room, props.relation) : null,
@@ -106,6 +110,7 @@ const MessageComposerButtons: React.FC<IProps> = (props: IProps) => {
             ) : (
                 emojiButton(props)
             ),
+            gifButton(props),
             uploadButton(), // props passed via UploadButtonContext
         ];
         moreButtons = [
@@ -158,6 +163,17 @@ function emojiButton(props: IProps): ReactElement {
         <EmojiButton
             key="emoji_button"
             addEmoji={props.addEmoji}
+            menuPosition={props.menuPosition}
+            className="mx_MessageComposer_button"
+        />
+    );
+}
+
+function gifButton(props: IProps): ReactElement {
+    return (
+        <GifButton
+            key="gif_button"
+            onInsertGif={props.onInsertGif}
             menuPosition={props.menuPosition}
             className="mx_MessageComposer_button"
         />

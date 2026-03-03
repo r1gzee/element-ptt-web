@@ -22,6 +22,8 @@ import { LockOffIcon, SendSolidIcon } from "@vector-im/compound-design-tokens/as
 
 import { _t } from "../../../languageHandler";
 import { MatrixClientPeg } from "../../../MatrixClientPeg";
+import ContentMessages from "../../../ContentMessages";
+import { type GiphyGif } from "./GifPicker";
 import dis from "../../../dispatcher/dispatcher";
 import { type ActionPayload } from "../../../dispatcher/payloads";
 import Stickerpicker from "./Stickerpicker";
@@ -390,6 +392,36 @@ export class MessageComposer extends React.Component<IProps, IState> {
         return true;
     };
 
+    private onInsertGif = async (gif: GiphyGif): Promise<void> => {
+        const matrixClient = this.props.mxClient;
+        const roomId = this.props.room.roomId;
+        const threadId =
+            this.props.relation?.rel_type === THREAD_RELATION_TYPE.name
+                ? (this.props.relation.event_id ?? null)
+                : null;
+
+        try {
+            const resp = await fetch(gif.images.original.url);
+            const blob = await resp.blob();
+            const { content_uri: contentUri } = await matrixClient.uploadContent(blob, { type: "image/gif" });
+            if (!contentUri) return;
+            await ContentMessages.sharedInstance().sendStickerContentToRoom(
+                contentUri,
+                roomId,
+                threadId,
+                {
+                    w: Number(gif.images.original.width),
+                    h: Number(gif.images.original.height),
+                    mimetype: "image/gif",
+                },
+                gif.title,
+                matrixClient,
+            );
+        } catch (e) {
+            logger.error("Failed to send GIF", e);
+        }
+    };
+
     private sendMessage = async (): Promise<void> => {
         if (this.state.haveRecording && this.voiceRecordingButton.current) {
             // There shouldn't be any text message to send when a voice recording is active, so
@@ -688,6 +720,7 @@ export class MessageComposer extends React.Component<IProps, IState> {
                             {canSendMessages && (
                                 <MessageComposerButtons
                                     addEmoji={this.addEmoji}
+                                    onInsertGif={this.onInsertGif}
                                     haveRecording={this.state.haveRecording}
                                     isMenuOpen={this.state.isMenuOpen}
                                     isStickerPickerOpen={this.state.isStickerPickerOpen}

@@ -215,6 +215,8 @@ export interface IConfigOptions {
     };
 
     modules?: string[];
+
+    giphy_api_key?: string; // Giphy public API key for GIF picker
 }
 
 export interface ISsoRedirectOptions {
