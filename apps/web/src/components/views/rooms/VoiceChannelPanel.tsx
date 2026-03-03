@@ -22,6 +22,7 @@ import { useCall, useConnectionState, useParticipatingMembers } from "../../../h
 import { usePTT } from "../../../hooks/usePTT";
 import { type VoiceMode } from "../../../hooks/useVoiceChannelMode";
 import FacePile from "../elements/FacePile";
+import { VoiceAudioModeToggle } from "./VoiceAudioModeToggle";
 
 interface VoiceChannelPanelProps {
     room: Room;
@@ -105,7 +106,7 @@ export function VoiceChannelPanel({ room }: VoiceChannelPanelProps): JSX.Element
     const connectionState = useConnectionState(call);
     const isConnected = connectionState === ConnectionState.Connected;
 
-    const { isSpeaking, startSpeaking, stopSpeaking, toggleMute, isFloorOccupied, voiceMode } =
+    const { isSpeaking, startSpeaking, stopSpeaking, toggleMute, isFloorOccupied, voiceMode, setVoiceMode } =
         usePTT(elementCall);
 
     const participants = useParticipatingMembers(call as Call);
@@ -159,7 +160,9 @@ export function VoiceChannelPanel({ room }: VoiceChannelPanelProps): JSX.Element
                     </Tooltip>
                 </div>
             </div>
-
+            <div className="mx_VoiceChannelPanel_modeRow">
+                <VoiceAudioModeToggle mode={voiceMode} onChange={setVoiceMode} />
+            </div>
         </div>
     );
 }

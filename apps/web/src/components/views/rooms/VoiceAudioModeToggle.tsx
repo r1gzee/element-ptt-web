@@ -5,7 +5,7 @@ SPDX-License-Identifier: AGPL-3.0-only OR GPL-3.0-only OR LicenseRef-Element-Com
 Please see LICENSE files in the repository root for full details.
 */
 
-import React, { type JSX } from "react";
+import React, { type JSX, useId } from "react";
 import { ToggleInput, Text } from "@vector-im/compound-web";
 
 import { _t } from "../../../languageHandler";
@@ -25,13 +25,14 @@ interface VoiceAudioModeToggleProps {
  * The chosen mode is per-user, not per-room.
  */
 export function VoiceAudioModeToggle({ mode, onChange }: VoiceAudioModeToggleProps): JSX.Element {
+    const id = useId();
     return (
         <div className="mx_VoiceAudioModeToggle">
             <Text as="span" size="sm" className="mx_VoiceAudioModeToggle_label">
                 {_t("voip|mode|push_to_talk")}
             </Text>
             <ToggleInput
-                id="voice-mode-toggle"
+                id={id}
                 checked={mode === "live"}
                 onChange={(e) => onChange(e.target.checked ? "live" : "ptt")}
                 aria-label={_t("voip|mode|toggle_label")}

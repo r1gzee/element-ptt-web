@@ -37,3 +37,73 @@ Please see LICENSE files in the repository root for full details.
     white-space: nowrap;
     user-select: none;
 }
+
+/* ── PTT HTTP server sub-section ───────────────────────────────── */
+
+/* Container for the key-pressed / key-released curl command lines */
+.mx_PTTHttpServer {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cpd-space-2x);
+    padding: var(--cpd-space-3x);
+    border-radius: 8px;
+    background-color: var(--cpd-color-bg-subtle-secondary);
+    border: 1px solid $separator;
+
+    /* Inline <code> snippets inside the description paragraphs */
+    code {
+        font-family: monospace;
+        font-size: 0.875em;
+        padding: 1px 4px;
+        border-radius: 3px;
+        background-color: var(--cpd-color-bg-subtle-primary);
+        color: $primary-content;
+        user-select: all;
+    }
+}
+
+/* Multi-line code blocks (window manager config examples) */
+.mx_PTTHttpServer_code {
+    margin: 0;
+    padding: var(--cpd-space-3x) var(--cpd-space-4x);
+    border-radius: 6px;
+    background-color: var(--cpd-color-bg-canvas-default);
+    border: 1px solid $separator;
+    font-family: monospace;
+    font-size: 0.8em;
+    line-height: 1.7;
+    white-space: pre;
+    overflow-x: auto;
+    color: $primary-content;
+    user-select: all;
+}
+
+/* Collapsible "Example configurations" disclosure widget */
+.mx_PTTHttpServer_examples {
+    margin-top: var(--cpd-space-2x);
+
+    summary {
+        cursor: pointer;
+        list-style: none; /* hide default triangle in Firefox */
+        display: flex;
+        align-items: center;
+        gap: var(--cpd-space-2x);
+        color: $secondary-content;
+        user-select: none;
+
+        /* Custom disclosure arrow */
+        &::before {
+            content: "▶";
+            font-size: 0.65em;
+            transition: transform 0.15s ease;
+        }
+
+        &::-webkit-details-marker {
+            display: none;
+        }
+    }
+
+    &[open] summary::before {
+        transform: rotate(90deg);
+    }
+}

@@ -55,7 +55,7 @@ function PTTHttpServerInfo(): JSX.Element | null {
                     <code>curl -sf -X POST http://127.0.0.1:{PTT_HTTP_PORT}/ptt/up</code>
                 </Text>
             </div>
-            <details>
+            <details className="mx_PTTHttpServer_examples">
                 <summary>
                     <Text as="span" size="sm">
                         Example configurations
