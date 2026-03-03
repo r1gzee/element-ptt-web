@@ -88,6 +88,11 @@ export function usePTT(call: ElementCall | null): UsePTTResult {
         if (voiceModeRef.current !== "ptt") return;
         if (isFloorOccupied) return;
         setIsSpeaking(true);
+        // Flush any pending mute (e.g. the initial PTT-mode mute queued on connect)
+        // so the unmute runs immediately rather than after the queued mute completes.
+        // The widget receives messages in send order, so if the mute already went out
+        // the subsequent unmute message will still arrive last and win.
+        muteQueueRef.current = Promise.resolve();
         queueSetAudio(true);
     }, [isConnected, isFloorOccupied, queueSetAudio]);
 
