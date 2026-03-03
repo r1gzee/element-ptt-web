@@ -134,7 +134,7 @@ import RightPanelStore from "../../stores/right-panel/RightPanelStore";
 import { onView3pidInvite } from "../../stores/right-panel/action-handlers";
 import RoomSearchAuxPanel from "../views/rooms/RoomSearchAuxPanel";
 import { PinnedMessageBanner } from "../views/rooms/PinnedMessageBanner";
-import { VoiceChannelPanel } from "../views/rooms/VoiceChannelPanel";
+import { CallModeIndicator } from "../views/rooms/CallModeIndicator";
 import { ScopedRoomContextProvider, useScopedRoomContext } from "../../contexts/ScopedRoomContext";
 import { DeclineAndBlockInviteDialog } from "../views/dialogs/DeclineAndBlockInviteDialog";
 import { type FocusMessageSearchPayload } from "../../dispatcher/payloads/FocusMessageSearchPayload.ts";
@@ -2681,7 +2681,7 @@ export class RoomView extends React.Component<IRoomProps, IRoomState> {
                         </main>
                         {statusBarArea}
                         {previewBar}
-                        {this.state.room && <VoiceChannelPanel room={this.state.room} />}
+                        {this.state.room && <CallModeIndicator room={this.state.room} />}
                         {messageComposer}
                     </>
                 );
@@ -2710,7 +2710,7 @@ export class RoomView extends React.Component<IRoomProps, IRoomState> {
                             role="main"
                             onClose={this.onCallClose}
                         />
-                        {this.state.room && <VoiceChannelPanel room={this.state.room} />}
+                        {this.state.room && <CallModeIndicator room={this.state.room} />}
                         {previewBar}
                     </>
                 );

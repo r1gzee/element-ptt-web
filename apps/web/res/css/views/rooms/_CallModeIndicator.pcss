@@ -1,0 +1,24 @@
+.mx_CallModeIndicator {
+    display: flex;
+    gap: 8px;
+    padding: 6px 12px;
+    border-top: 1px solid $separator-color;
+    align-items: center;
+    justify-content: center;
+}
+
+.mx_CallModeIndicator button {
+    font-size: 12px;
+    padding: 2px 10px;
+    border-radius: 12px;
+    border: 1px solid $separator-color;
+    background: transparent;
+    color: $secondary-content;
+    cursor: pointer;
+}
+
+.mx_CallModeIndicator button.active {
+    background: $accent;
+    color: #fff;
+    border-color: $accent;
+}
